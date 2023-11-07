@@ -4,11 +4,19 @@
   "description": "Proxy Authentication Service intended to replace AWS_LAMBDA authentication until amplify starts working correctly locally",
   "main": "build/index.js",
   "dependencies": {
+    "@types/cors": "^2.8.16",
+    "@types/express-session": "^1.17.10",
+    "cors": "^2.8.5",
+    "ethers": "^6.8.1",
     "express": "^4.18.2",
-    "http-proxy-middleware": "^2.0.6"
+    "express-session": "^1.17.3",
+    "http-proxy-middleware": "^2.0.6",
+    "siwe": "^2.1.4"
   },
   "devDependencies": {
+    "@types/express": "^4.17.21",
     "@types/node": "^20.9.0",
+    "dotenv": "^16.3.1",
     "nodemon": "^3.0.1",
     "rimraf": "^5.0.5",
     "ts-node": "^10.9.1",
