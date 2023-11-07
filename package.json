@@ -1,0 +1,33 @@
+{
+  "name": "colonycdappauthproxy",
+  "version": "1.0.0",
+  "description": "Proxy Authentication Service intended to replace AWS_LAMBDA authentication until amplify starts working correctly locally",
+  "main": "build/index.js",
+  "dependencies": {
+    "express": "^4.18.2",
+    "http-proxy-middleware": "^2.0.6"
+  },
+  "devDependencies": {
+    "@types/node": "^20.9.0",
+    "nodemon": "^3.0.1",
+    "rimraf": "^5.0.5",
+    "ts-node": "^10.9.1",
+    "typescript": "^5.2.2"
+  },
+  "scripts": {
+    "dev": "nodemon",
+    "clean": "rimraf build",
+    "build": "npm run clean && tsc",
+    "prod": "npm run build && node build/index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/JoinColony/colonyCDappAuthProxy.git"
+  },
+  "author": "Raul <raul@colony.io>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/JoinColony/colonyCDappAuthProxy/issues"
+  },
+  "homepage": "https://github.com/JoinColony/colonyCDappAuthProxy#readme"
+}
