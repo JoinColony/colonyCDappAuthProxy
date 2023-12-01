@@ -1,14 +1,14 @@
 import dotenv from "dotenv";
 import express from "express";
-import { createProxyMiddleware, fixRequestBody, responseInterceptor } from "http-proxy-middleware";
+import { createProxyMiddleware, fixRequestBody } from "http-proxy-middleware";
 import cors from "cors";
-import { generateNonce, SiweMessage } from 'siwe';
 import gql from 'graphql-tag';
 
 import {
   handleHealthRoute,
   handleNonceRoute,
   handleAuthRoute,
+  handleDeauthRoute,
  } from '~routes';
 import ExpressSession from './ExpressSession';
 import { RequestError } from './RequestError';
@@ -60,38 +60,12 @@ const proxyServerInstace = () => {
    */
   proxyServer[RequestMethods.Get](Urls.Nonce, handleNonceRoute);
   proxyServer[RequestMethods.Post](Urls.Auth, handleAuthRoute);
+  proxyServer[RequestMethods.Post](Urls.DeAuth, handleDeauthRoute);
 
   /*
    * GraphQL
    */
 
-  proxyServer.post(
-    Urls.DeAuth,
-    async (req, res) => {
-      try {
-        const requestRemoteAddress = getRemoteIpAddress(req);
-        if (req.session.auth) {
-          const oldAddress = req.session.auth.address;
-          console.log(`Request to deauthenticate was successful ip: ${requestRemoteAddress} address: ${req.session?.auth?.address} cookie: ${req.headers.cookie}`)
-          resetSession(req);
-          return req.session.save(() => sendResponse(res, {
-            message: 'deauthenticated',
-            type: ResponseTypes.Auth,
-            data: oldAddress || '',
-          }));
-        }
-        console.log(`Unauthentication user requested deauthentication ip: ${requestRemoteAddress} cookie: ${req.headers.cookie}`);
-        return res.status(HttpStatuses.FORBIDDEN).json({ message: 'no deauthentication possible', type: ResponseTypes.Auth, data: '' });
-      } catch (e: any) {
-        resetSession(req);
-        return req.session.save(() => sendResponse(res, {
-          message: e.message.toLowerCase(),
-          type: ResponseTypes.Error,
-          data: '',
-        }, HttpStatuses.SERVER_ERROR));
-      }
-    },
-  );
 
   proxyServer.get(
     Urls.Check,
