@@ -9,6 +9,7 @@ import {
   handleNonceRoute,
   handleAuthRoute,
   handleDeauthRoute,
+  handleCheck,
  } from '~routes';
 import ExpressSession from './ExpressSession';
 import { RequestError } from './RequestError';
@@ -61,36 +62,11 @@ const proxyServerInstace = () => {
   proxyServer[RequestMethods.Get](Urls.Nonce, handleNonceRoute);
   proxyServer[RequestMethods.Post](Urls.Auth, handleAuthRoute);
   proxyServer[RequestMethods.Post](Urls.DeAuth, handleDeauthRoute);
+  proxyServer[RequestMethods.Get](Urls.Check, handleCheck);
 
   /*
    * GraphQL
    */
-
-
-  proxyServer.get(
-    Urls.Check,
-    async (req, res) => {
-      try {
-        const userAuthenticated = !!req.session.auth;
-        const requestRemoteAddress = getRemoteIpAddress(req);
-
-        console.log(`Request to check authentication ip: ${requestRemoteAddress} address: ${req.session?.auth?.address} authenticated: ${userAuthenticated} cookie: ${req.headers.cookie}`)
-
-        return sendResponse(res, {
-          message: userAuthenticated ? 'authenticated' : 'not authenticated',
-          type: ResponseTypes.Status,
-          data: req.session?.auth?.address || '',
-        }, userAuthenticated ? HttpStatuses.OK : HttpStatuses.FORBIDDEN)
-      } catch (e: any) {
-        resetSession(req);
-        return req.session.save(() => sendResponse(res, {
-          message: e.message.toLowerCase(),
-          type: ResponseTypes.Error,
-          data: '',
-        }, HttpStatuses.SERVER_ERROR));
-      }
-    },
-  );
 
   // proxyServer.use((req, res, next) => {
   //   const userAuthenticated = req.session.auth;

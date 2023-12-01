@@ -4,4 +4,5 @@ export {
   handleNonceRoute,
   handleAuthRoute,
   handleDeauthRoute,
+  handleCheck,
 } from './auth';
