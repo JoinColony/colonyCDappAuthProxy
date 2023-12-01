@@ -7,6 +7,7 @@ import {
   getStaticOrigin,
   sendResponse,
   getRemoteIpAddress,
+  logger,
 } from '~helpers';
 import {
   ResponseTypes,
@@ -32,20 +33,20 @@ export const graphQlProxyRouteHandler: Options = {
   ) => {
     const userAuthenticated = !!request.session.auth;
     const requestRemoteAddress = getRemoteIpAddress(request);
-    // console.log({ proxyReq, req, res });
-    // console.log(req.body);
+    // logger({ proxyReq, req, res });
+    // logger(req.body);
     if (request.body.query) {
       const requestContainsMutation = JSON.stringify(request.body).includes('mutation');
       const operationName = request.body.operationName ? request.body.operationName : '';
       const variables = request.body.variables ? JSON.stringify(request.body.variables) : '';
-      console.log(`[${userAuthenticated ? `AUTHENTICATED ${request.session.auth?.address}` : 'UNAUTHENTICATED'}]`, requestContainsMutation ? 'mutation' : 'query', operationName, variables);
+      logger(`[${userAuthenticated ? `AUTHENTICATED ${request.session.auth?.address}` : 'UNAUTHENTICATED'}]`, requestContainsMutation ? 'mutation' : 'query', operationName, variables);
       if (requestContainsMutation) {
         if (operationName === 'UpdateContributorsWithReputation') {
           if (userAuthenticated) {
             return fixRequestBody(proxyRequest, request);
           }
         }
-        console.log('UNAUTHENTICATED! Request did not go through.');
+        logger('UNAUTHENTICATED! Request did not go through.');
         return sendResponse(response, {
           message: 'forbidden',
           type: ResponseTypes.Auth,
@@ -53,8 +54,8 @@ export const graphQlProxyRouteHandler: Options = {
         }, HttpStatuses.FORBIDDEN);
       }
       return fixRequestBody(proxyRequest, request);
-      // console.log(req.body);
-      // console.log(req.headers);
+      // logger(req.body);
+      // logger(req.headers);
       // const { definitions, ...rest } = gql`${req.body.query}`;
       // const requestContainsMutation = (definitions as any[]).some(({ operation }) => operation === 'mutation');
       // const operationNames = (definitions as any[]).map(({ name }) => {
@@ -63,15 +64,15 @@ export const graphQlProxyRouteHandler: Options = {
       //   }
       //   return name;
       // });
-      // console.log(requestContainsMutation ? 'mutation' : 'query', operationNames.join(', '));
+      // logger(requestContainsMutation ? 'mutation' : 'query', operationNames.join(', '));
       // if (requestContainsMutation) {
-      //   console.log('-----------------------');
-      //   console.log(JSON.stringify(definitions));
-      //   console.log(req.body)
-      //   console.log('-----------------------');
+      //   logger('-----------------------');
+      //   logger(JSON.stringify(definitions));
+      //   logger(req.body)
+      //   logger('-----------------------');
       // }
     }
-    console.log(`GraphQL request malformed ip: ${requestRemoteAddress} address: ${request.session?.auth?.address} authenticated: ${userAuthenticated} cookie: ${request.headers.cookie} body: ${request.body ? JSON.stringify(request.body) : ''}`);
+    logger(`GraphQL request malformed ip: ${requestRemoteAddress} address: ${request.session?.auth?.address} authenticated: ${userAuthenticated} cookie: ${request.headers.cookie} body: ${request.body ? JSON.stringify(request.body) : ''}`);
     return sendResponse(response, {
       message: 'malformed graphql request',
       type: ResponseTypes.Error,
@@ -86,4 +87,11 @@ export const graphQlProxyRouteHandler: Options = {
     proxyResponse.headers[Headers.AllowOrigin] = getStaticOrigin(request.headers.origin);
     proxyResponse.headers[Headers.PoweredBy] = 'Colony';
   },
+  logProvider: () => ({
+    log: logger,
+    info: logger,
+    error: logger,
+    warn: logger,
+    debug: logger,
+  }),
 };

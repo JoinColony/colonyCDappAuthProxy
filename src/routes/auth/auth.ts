@@ -1,7 +1,7 @@
 import { Response, Request } from 'express-serve-static-core';
 import { SiweMessage } from 'siwe';
 
-import { sendResponse, resetSession } from '~helpers';
+import { sendResponse, resetSession, logger } from '~helpers';
 import { HttpStatuses, ResponseTypes } from '~types';
 
 export const handleAuthRoute = async (request: Request, response: Response) => {
@@ -20,7 +20,7 @@ export const handleAuthRoute = async (request: Request, response: Response) => {
     request.session.auth = message;
     request.session.cookie.expires = new Date(message?.expirationTime || new Date(Date.now() + 3600000));
 
-    console.log(`User ${message.address} was authenticated successfully.`, { message, signature: request.body.signature, nonce: request.session.nonce, cookie: request.session.cookie });
+    logger(`User ${message.address} was authenticated successfully.`, { message, signature: request.body.signature, nonce: request.session.nonce, cookie: request.session.cookie });
 
     return request.session.save(() => sendResponse(response, {
       message: 'authenticated',

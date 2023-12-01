@@ -86,3 +86,11 @@ export const resetSession = (request: Request): void => {
   request.session.nonce = undefined;
   request.session.save();
 };
+
+export const logger = (...args: any[]): void => {
+  const isSilent = process.env.SILENT === 'true';
+  if (!isSilent) {
+    console.log(`${new Date().toISOString()}`, ...args);
+  }
+  return;
+};

@@ -1,6 +1,6 @@
 import { Response, Request } from 'express-serve-static-core';
 
-import { sendResponse, resetSession, getRemoteIpAddress } from '~helpers';
+import { sendResponse, resetSession, getRemoteIpAddress, logger } from '~helpers';
 import { HttpStatuses, ResponseTypes } from '~types';
 
 export const handleCheck = async (request: Request, response: Response) => {
@@ -8,7 +8,7 @@ export const handleCheck = async (request: Request, response: Response) => {
     const userAuthenticated = !!request.session.auth;
     const requestRemoteAddress = getRemoteIpAddress(request);
 
-    console.log(`Request to check authentication ip: ${requestRemoteAddress} address: ${request.session?.auth?.address} authenticated: ${userAuthenticated} cookie: ${request.headers.cookie}`)
+    logger(`Request to check authentication ip: ${requestRemoteAddress} address: ${request.session?.auth?.address} authenticated: ${userAuthenticated} cookie: ${request.headers.cookie}`)
 
     return sendResponse(response, {
       message: userAuthenticated ? 'authenticated' : 'not authenticated',

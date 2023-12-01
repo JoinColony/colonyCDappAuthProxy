@@ -1,12 +1,11 @@
 import dotenv from "dotenv";
 import express from "express";
-import { createProxyMiddleware } from "http-proxy-middleware";
 import cors from "cors";
 import gql from 'graphql-tag';
 
 import routes from '~routes';
 import { RequestError } from './RequestError';
-import { detectOperation, getStaticOrigin } from './helpers';
+import { detectOperation, getStaticOrigin, logger } from './helpers';
 import { HttpStatuses, Urls, ServerMethods } from '~types';
 import ExpressSession from './ExpressSession';
 
@@ -49,25 +48,25 @@ const proxyServerInstace = () => {
     try {
       // verbose
 
-      console.log('-----')
-      console.log('- body')
-      console.log(req.body);
+      logger('-----')
+      logger('- body')
+      logger(req.body);
       if (req.body.query) {
         const graphqlDocument = gql`${req.body.query}`;
-        console.log('- query');
-        console.log(gql`${req.body.query}`);
-        console.log('- definitions');
-        console.log(graphqlDocument.definitions);
-        console.log('-');
+        logger('- query');
+        logger(gql`${req.body.query}`);
+        logger('- definitions');
+        logger(graphqlDocument.definitions);
+        logger('-');
       }
 
       const { operationType, operations, variables } = detectOperation(req.body);
-      console.log('Operation: ', operationType, operations, variables);
+      logger('Operation: ', operationType, operations, variables);
 
-      console.log('----->')
+      logger('----->')
       return res.sendStatus(HttpStatuses.OK);
     } catch (requestError: RequestError | any) {
-      console.log('GraphQL request malformed', req.body ? JSON.stringify(req.body) : '');
+      logger('GraphQL request malformed', req.body ? JSON.stringify(req.body) : '');
       return res.status(HttpStatuses.SERVER_ERROR).json(requestError.response);
     }
   });
