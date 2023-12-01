@@ -5,7 +5,11 @@ import cors from "cors";
 import { generateNonce, SiweMessage } from 'siwe';
 import gql from 'graphql-tag';
 
-import { handleHealthRoute } from '~routes';
+import {
+  handleHealthRoute,
+  handleNonceRoute,
+  handleAuthRoute,
+ } from '~routes';
 import ExpressSession from './ExpressSession';
 import { RequestError } from './RequestError';
 import {
@@ -46,56 +50,20 @@ const proxyServerInstace = () => {
 
   proxyServer.set('trust proxy', true);
 
+  /*
+   * Server Health
+   */
   proxyServer[RequestMethods.Get](Urls.Health, handleHealthRoute);
 
-  proxyServer.get(
-    Urls.Nonce,
-    async (req, res) => {
-      req.session.nonce = generateNonce();
-      return sendResponse(res, {
-        message: 'generated',
-        type: ResponseTypes.Nonce,
-        data: req.session.nonce || '',
-      });
-    },
-  );
+  /*
+   * Auth
+   */
+  proxyServer[RequestMethods.Get](Urls.Nonce, handleNonceRoute);
+  proxyServer[RequestMethods.Post](Urls.Auth, handleAuthRoute);
 
-  proxyServer.post(
-    Urls.Auth,
-    async (req, res) => {
-      try {
-        if (!req.body.message) {
-          return sendResponse(res, {
-            message: 'expected message object as body',
-            type: ResponseTypes.Error,
-            data: '',
-          }, HttpStatuses.UNPROCESSABLE)
-        }
-
-        let SIWEObject = new SiweMessage(req.body.message);
-        const { data: message } = await SIWEObject.verify({ signature: req.body.signature, nonce: req.session.nonce });
-
-        req.session.auth = message;
-        req.session.cookie.expires = new Date(message?.expirationTime || new Date(Date.now() + 3600000));
-
-        console.log(`User ${message.address} was authenticated successfully.`, { message, signature: req.body.signature, nonce: req.session.nonce, cookie: req.session.cookie });
-
-        return req.session.save(() => sendResponse(res, {
-          message: 'authenticated',
-          type: ResponseTypes.Auth,
-          data: message.address || '',
-        }));
-
-      } catch (e: any) {
-        resetSession(req);
-        return req.session.save(() => sendResponse(res, {
-          message: e.message.toLowerCase(),
-          type: ResponseTypes.Error,
-          data: '',
-        }, HttpStatuses.SERVER_ERROR));
-      }
-    },
-  );
+  /*
+   * GraphQL
+   */
 
   proxyServer.post(
     Urls.DeAuth,

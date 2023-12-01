@@ -4,5 +4,5 @@
   ],
   "ext": ".ts,.js",
   "ignore": [],
-  "exec": "npx ts-node -r tsconfig-paths/register ./src/index.ts"
+  "exec": "npx ts-node --files -r tsconfig-paths/register ./src/index.ts"
 }
