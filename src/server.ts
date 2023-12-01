@@ -1,34 +1,14 @@
 import dotenv from "dotenv";
 import express from "express";
-import { createProxyMiddleware, fixRequestBody } from "http-proxy-middleware";
+import { createProxyMiddleware } from "http-proxy-middleware";
 import cors from "cors";
 import gql from 'graphql-tag';
 
-import {
-  handleHealthRoute,
-  handleNonceRoute,
-  handleAuthRoute,
-  handleDeauthRoute,
-  handleCheck,
-  graphQlProxyRouteHandler,
- } from '~routes';
-import ExpressSession from './ExpressSession';
+import routes from '~routes';
 import { RequestError } from './RequestError';
-import {
-  detectOperation,
-  getStaticOrigin,
-  sendResponse,
-  getRemoteIpAddress,
-  resetSession,
-} from './helpers';
-import {
-  ResponseTypes,
-  HttpStatuses,
-  Urls,
-  ContentTypes,
-  Headers,
-  ServerMethods,
-} from '~types';
+import { detectOperation, getStaticOrigin } from './helpers';
+import { HttpStatuses, Urls, ServerMethods } from '~types';
+import ExpressSession from './ExpressSession';
 
 dotenv.config();
 
@@ -53,22 +33,9 @@ const proxyServerInstace = () => {
   proxyServer.set('trust proxy', true);
 
   /*
-   * Server Health
+   * Initialize routes
    */
-  proxyServer[ServerMethods.Get](Urls.Health, handleHealthRoute);
-
-  /*
-   * Auth
-   */
-  proxyServer[ServerMethods.Get](Urls.Nonce, handleNonceRoute);
-  proxyServer[ServerMethods.Post](Urls.Auth, handleAuthRoute);
-  proxyServer[ServerMethods.Post](Urls.DeAuth, handleDeauthRoute);
-  proxyServer[ServerMethods.Get](Urls.Check, handleCheck);
-
-  /*
-   * GraphQL
-   */
-  proxyServer[ServerMethods.Use](Urls.GraphQL, createProxyMiddleware(graphQlProxyRouteHandler));
+  routes.map(({ method, url, handler }) => proxyServer[method](url, handler));
 
   // proxyServer.use((req, res, next) => {
   //   const userAuthenticated = req.session.auth;

@@ -1,10 +1,57 @@
-export { handleHealthRoute } from './health';
+import { createProxyMiddleware } from "http-proxy-middleware";
 
-export { graphQlProxyRouteHandler } from './graphql';
+import { RouteHandler, ServerMethods, Urls } from '~types';
 
-export {
+import { handleHealthRoute } from './health';
+import {
   handleNonceRoute,
   handleAuthRoute,
   handleDeauthRoute,
   handleCheck,
 } from './auth';
+import { graphQlProxyRouteHandler } from './graphql';
+
+
+const routes: RouteHandler[] = [
+  /*
+   * Server Health
+   */
+  {
+    method: ServerMethods.Get,
+    url: Urls.Health,
+    handler: handleHealthRoute,
+  },
+  /*
+   * Auth
+   */
+  {
+    method: ServerMethods.Get,
+    url: Urls.Nonce,
+    handler: handleNonceRoute,
+  },
+  {
+    method: ServerMethods.Post,
+    url: Urls.Auth,
+    handler: handleAuthRoute,
+  },
+  {
+    method: ServerMethods.Post,
+    url: Urls.DeAuth,
+    handler: handleDeauthRoute,
+  },
+  {
+    method: ServerMethods.Get,
+    url: Urls.Check,
+    handler: handleCheck,
+  },
+  /*
+   * GraphQL
+   */
+  {
+    method: ServerMethods.Use,
+    url: Urls.GraphQL,
+    handler: createProxyMiddleware(graphQlProxyRouteHandler),
+  },
+];
+
+export default routes;

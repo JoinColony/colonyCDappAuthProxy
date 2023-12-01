@@ -1,3 +1,5 @@
+import { RequestHandler } from 'http-proxy-middleware';
+
 export enum OperationTypes {
   Query = 'query',
   Mutation = 'mutation',
@@ -64,4 +66,10 @@ export enum ServerMethods {
   Post = 'post',
   Get = 'get',
   Use = 'use',
+}
+
+export interface RouteHandler {
+  method: ServerMethods;
+  url: Urls;
+  handler: RequestHandler;
 }

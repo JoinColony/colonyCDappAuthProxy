@@ -1,5 +1,5 @@
 import dotenv from "dotenv";
-import { fixRequestBody } from "http-proxy-middleware";
+import { fixRequestBody, Options } from "http-proxy-middleware";
 import { Response, Request } from 'express-serve-static-core';
 import { ClientRequest, IncomingMessage } from 'http';
 
@@ -17,7 +17,7 @@ import {
 
 dotenv.config();
 
-export const graphQlProxyRouteHandler = {
+export const graphQlProxyRouteHandler: Options = {
   target: process.env.APPSYNC_API,
   changeOrigin: true,
   headers: {
