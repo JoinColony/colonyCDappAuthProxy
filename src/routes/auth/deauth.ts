@@ -10,7 +10,7 @@ export const handleDeauthRoute = async (request: Request, response: Response) =>
       const oldAddress = request.session.auth.address;
       logger(`Request to deauthenticate was successful ip: ${requestRemoteAddress} address: ${request.session?.auth?.address} cookie: ${request.headers.cookie}`)
       resetSession(request);
-      return request.session.save(() => sendResponse(response, {
+      return request.session.save(() => sendResponse(response, request, {
         message: 'deauthenticated',
         type: ResponseTypes.Auth,
         data: oldAddress || '',
@@ -20,7 +20,7 @@ export const handleDeauthRoute = async (request: Request, response: Response) =>
     return response.status(HttpStatuses.FORBIDDEN).json({ message: 'no deauthentication possible', type: ResponseTypes.Auth, data: '' });
   } catch (error: any) {
     resetSession(request);
-    return request.session.save(() => sendResponse(response, {
+    return request.session.save(() => sendResponse(response, request, {
       message: error.message.toLowerCase(),
       type: ResponseTypes.Error,
       data: '',

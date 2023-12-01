@@ -6,7 +6,7 @@ import { ResponseTypes } from '~types';
 
 export const handleNonceRoute = async (request: Request, response: Response) => {
   request.session.nonce = generateNonce();
-  return sendResponse(response, {
+  return sendResponse(response, request, {
     message: 'generated',
     type: ResponseTypes.Nonce,
     data: request.session.nonce || '',

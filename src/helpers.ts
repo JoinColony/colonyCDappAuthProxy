@@ -60,16 +60,21 @@ export const getStaticOrigin = (origin?: string, callback?: StaticOriginCallback
     isAllowedOrigin = true;
   }
   if (callback && typeof callback === 'function') {
-    callback(null, origin);
+    callback(null, isAllowedOrigin ? origin : '');
   }
-  return origin;
+  return isAllowedOrigin ? origin : '';
 };
 
 export const sendResponse = (
   response: ExpressResponse,
+  request: Request,
   message?: Response,
   status: HttpStatuses = HttpStatuses.OK,
-) => response.status(status).json(message);
+) => response.set({
+  [Headers.AllowOrigin]: getStaticOrigin(request.headers.origin),
+  [Headers.ContentType]: 'application/json',
+  [Headers.PoweredBy]: 'Colony',
+}).status(status).json(message);
 
 export const getRemoteIpAddress = (request: Request): string =>
   typeof request.headers[Headers.ForwardedFor] === 'string'

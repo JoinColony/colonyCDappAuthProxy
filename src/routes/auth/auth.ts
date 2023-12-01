@@ -7,7 +7,7 @@ import { HttpStatuses, ResponseTypes } from '~types';
 export const handleAuthRoute = async (request: Request, response: Response) => {
   try {
     if (!request.body.message) {
-      return sendResponse(response, {
+      return sendResponse(response, request, {
         message: 'expected message object as body',
         type: ResponseTypes.Error,
         data: '',
@@ -22,7 +22,7 @@ export const handleAuthRoute = async (request: Request, response: Response) => {
 
     logger(`User ${message.address} was authenticated successfully.`, { message, signature: request.body.signature, nonce: request.session.nonce, cookie: request.session.cookie });
 
-    return request.session.save(() => sendResponse(response, {
+    return request.session.save(() => sendResponse(response, request, {
       message: 'authenticated',
       type: ResponseTypes.Auth,
       data: message.address || '',
@@ -30,7 +30,7 @@ export const handleAuthRoute = async (request: Request, response: Response) => {
 
   } catch (e: any) {
     resetSession(request);
-    return request.session.save(() => sendResponse(response, {
+    return request.session.save(() => sendResponse(response, request, {
       message: e.message.toLowerCase(),
       type: ResponseTypes.Error,
       data: '',

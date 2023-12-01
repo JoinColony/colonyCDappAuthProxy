@@ -47,7 +47,7 @@ export const graphQlProxyRouteHandler: Options = {
           }
         }
         logger('UNAUTHENTICATED! Request did not go through.');
-        return sendResponse(response, {
+        return sendResponse(response, request, {
           message: 'forbidden',
           type: ResponseTypes.Auth,
           data: '',
@@ -73,7 +73,7 @@ export const graphQlProxyRouteHandler: Options = {
       // }
     }
     logger(`GraphQL request malformed ip: ${requestRemoteAddress} address: ${request.session?.auth?.address} authenticated: ${userAuthenticated} cookie: ${request.headers.cookie} body: ${request.body ? JSON.stringify(request.body) : ''}`);
-    return sendResponse(response, {
+    return sendResponse(response, request, {
       message: 'malformed graphql request',
       type: ResponseTypes.Error,
       data: '',
