@@ -10,6 +10,7 @@ import {
   handleAuthRoute,
   handleDeauthRoute,
   handleCheck,
+  graphQlProxyRouteHandler,
  } from '~routes';
 import ExpressSession from './ExpressSession';
 import { RequestError } from './RequestError';
@@ -26,7 +27,7 @@ import {
   Urls,
   ContentTypes,
   Headers,
-  RequestMethods,
+  ServerMethods,
 } from '~types';
 
 dotenv.config();
@@ -54,19 +55,20 @@ const proxyServerInstace = () => {
   /*
    * Server Health
    */
-  proxyServer[RequestMethods.Get](Urls.Health, handleHealthRoute);
+  proxyServer[ServerMethods.Get](Urls.Health, handleHealthRoute);
 
   /*
    * Auth
    */
-  proxyServer[RequestMethods.Get](Urls.Nonce, handleNonceRoute);
-  proxyServer[RequestMethods.Post](Urls.Auth, handleAuthRoute);
-  proxyServer[RequestMethods.Post](Urls.DeAuth, handleDeauthRoute);
-  proxyServer[RequestMethods.Get](Urls.Check, handleCheck);
+  proxyServer[ServerMethods.Get](Urls.Nonce, handleNonceRoute);
+  proxyServer[ServerMethods.Post](Urls.Auth, handleAuthRoute);
+  proxyServer[ServerMethods.Post](Urls.DeAuth, handleDeauthRoute);
+  proxyServer[ServerMethods.Get](Urls.Check, handleCheck);
 
   /*
    * GraphQL
    */
+  proxyServer[ServerMethods.Use](Urls.GraphQL, createProxyMiddleware(graphQlProxyRouteHandler));
 
   // proxyServer.use((req, res, next) => {
   //   const userAuthenticated = req.session.auth;
@@ -102,70 +104,6 @@ const proxyServerInstace = () => {
       return res.status(HttpStatuses.SERVER_ERROR).json(requestError.response);
     }
   });
-
-  proxyServer.use(Urls.GraphQL, createProxyMiddleware({
-    target: process.env.APPSYNC_API,
-    changeOrigin: true,
-    headers: {
-      [Headers.ApiKey]: process.env.APPSYNC_API_KEY || '',
-      [Headers.ContentType]: ContentTypes.Json,
-    },
-    pathRewrite: { '^/graphql': '' },
-    onProxyReq: (proxyReq, req, res) => {
-      const userAuthenticated = !!req.session.auth;
-      const requestRemoteAddress = getRemoteIpAddress(req);
-      // console.log({ proxyReq, req, res });
-      // console.log(req.body);
-      if (req.body.query) {
-        const requestContainsMutation = JSON.stringify(req.body).includes('mutation');
-        const operationName = req.body.operationName ? req.body.operationName : '';
-        const variables = req.body.variables ? JSON.stringify(req.body.variables) : '';
-        console.log(`[${userAuthenticated ? `AUTHENTICATED ${req.session.auth?.address}` : 'UNAUTHENTICATED'}]`, requestContainsMutation ? 'mutation' : 'query', operationName, variables);
-        if (requestContainsMutation) {
-          if (operationName === 'UpdateContributorsWithReputation') {
-            if (userAuthenticated) {
-              return fixRequestBody(proxyReq, req);
-            }
-          }
-          console.log('UNAUTHENTICATED! Request did not go through.');
-          return sendResponse(res, {
-            message: 'forbidden',
-            type: ResponseTypes.Auth,
-            data: '',
-          }, HttpStatuses.FORBIDDEN);
-        }
-        return fixRequestBody(proxyReq, req);
-        // console.log(req.body);
-        // console.log(req.headers);
-        // const { definitions, ...rest } = gql`${req.body.query}`;
-        // const requestContainsMutation = (definitions as any[]).some(({ operation }) => operation === 'mutation');
-        // const operationNames = (definitions as any[]).map(({ name }) => {
-        //   if (!!name?.kind) {
-        //     return name.value;
-        //   }
-        //   return name;
-        // });
-        // console.log(requestContainsMutation ? 'mutation' : 'query', operationNames.join(', '));
-        // if (requestContainsMutation) {
-        //   console.log('-----------------------');
-        //   console.log(JSON.stringify(definitions));
-        //   console.log(req.body)
-        //   console.log('-----------------------');
-        // }
-      }
-      console.log(`GraphQL request malformed ip: ${requestRemoteAddress} address: ${req.session?.auth?.address} authenticated: ${userAuthenticated} cookie: ${req.headers.cookie} body: ${req.body ? JSON.stringify(req.body) : ''}`);
-      return sendResponse(res, {
-        message: 'malformed graphql request',
-        type: ResponseTypes.Error,
-        data: '',
-      }, HttpStatuses.SERVER_ERROR);
-    },
-    // selfHandleResponse: true,
-    onProxyRes: (proxyRes, req, res) => {
-      proxyRes.headers[Headers.AllowOrigin] = getStaticOrigin(req.headers.origin);
-      proxyRes.headers[Headers.PoweredBy] = 'Colony';
-    },
-  }));
 
   return proxyServer;
 };

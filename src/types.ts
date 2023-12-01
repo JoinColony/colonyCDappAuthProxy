@@ -60,7 +60,7 @@ export enum Headers {
 export type StaticOrigin = boolean | string | RegExp | (boolean | string | RegExp)[];
 export type StaticOriginCallback = (err: Error | null, origin?: StaticOrigin | undefined) => void;
 
-export enum RequestMethods {
+export enum ServerMethods {
   Post = 'post',
   Get = 'get',
   Use = 'use',

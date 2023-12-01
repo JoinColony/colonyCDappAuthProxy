@@ -1,4 +1,6 @@
-export { default as handleHealthRoute } from './health';
+export { handleHealthRoute } from './health';
+
+export { graphQlProxyRouteHandler } from './graphql';
 
 export {
   handleNonceRoute,
