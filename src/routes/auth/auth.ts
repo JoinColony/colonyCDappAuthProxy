@@ -29,12 +29,14 @@ export const handleAuthRoute = async (request: Request, response: Response) => {
       data: message.address || '',
     }));
 
-  } catch (e: any) {
+  } catch (error: any) {
+
     resetSession(request);
     return request.session.save(() => sendResponse(response, request, {
       message: 'could not authenticate',
       type: ResponseTypes.Error,
-      data: e?.message || '',
+      data: error?.message || '',
     }, HttpStatuses.SERVER_ERROR));
+
   }
 };

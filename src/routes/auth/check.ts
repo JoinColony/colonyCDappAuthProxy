@@ -5,6 +5,7 @@ import { HttpStatuses, ResponseTypes } from '~types';
 
 export const handleCheck = async (request: Request, response: Response) => {
   try {
+
     const userAuthenticated = !!request.session.auth;
     const requestRemoteAddress = getRemoteIpAddress(request);
 
@@ -19,11 +20,11 @@ export const handleCheck = async (request: Request, response: Response) => {
   } catch (error: any) {
 
     resetSession(request);
-
     return request.session.save(() => sendResponse(response, request, {
-      message: error.message.toLowerCase(),
+      message: 'could not check authentication status',
       type: ResponseTypes.Error,
-      data: '',
+      data: error?.message || '',
     }, HttpStatuses.SERVER_ERROR));
+
   }
 };

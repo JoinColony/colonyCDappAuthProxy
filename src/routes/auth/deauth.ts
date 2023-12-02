@@ -5,6 +5,7 @@ import { HttpStatuses, ResponseTypes } from '~types';
 
 export const handleDeauthRoute = async (request: Request, response: Response) => {
   try {
+
     const requestRemoteAddress = getRemoteIpAddress(request);
     if (request.session.auth) {
       const oldAddress = request.session.auth.address;
@@ -18,12 +19,15 @@ export const handleDeauthRoute = async (request: Request, response: Response) =>
     }
     logger(`Unauthentication user requested deauthentication ip: ${requestRemoteAddress} cookie: ${request.headers.cookie}`);
     return response.status(HttpStatuses.FORBIDDEN).json({ message: 'no deauthentication possible', type: ResponseTypes.Auth, data: '' });
+
   } catch (error: any) {
+
     resetSession(request);
     return request.session.save(() => sendResponse(response, request, {
-      message: error.message.toLowerCase(),
+      message: 'could not deauthenticate',
       type: ResponseTypes.Error,
-      data: '',
+      data: error?.message || '',
     }, HttpStatuses.SERVER_ERROR));
+
   }
 };
