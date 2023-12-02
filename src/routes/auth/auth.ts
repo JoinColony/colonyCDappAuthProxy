@@ -17,6 +17,7 @@ export const handleAuthRoute = async (request: Request, response: Response) => {
     let SIWEObject = new SiweMessage(request.body.message);
     const { data: message } = await SIWEObject.verify({ signature: request.body.signature, nonce: request.session.nonce });
 
+    resetSession(request);
     request.session.auth = message;
     request.session.cookie.expires = new Date(message?.expirationTime || new Date(Date.now() + 3600000));
     request.session.cookie.httpOnly = false; // read the cookie in the frontend
