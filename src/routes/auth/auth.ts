@@ -19,6 +19,7 @@ export const handleAuthRoute = async (request: Request, response: Response) => {
 
     request.session.auth = message;
     request.session.cookie.expires = new Date(message?.expirationTime || new Date(Date.now() + 3600000));
+    request.session.cookie.httpOnly = false; // read the cookie in the frontend
 
     logger(`User ${message.address} was authenticated successfully.`, { message, signature: request.body.signature, nonce: request.session.nonce, cookie: request.session.cookie });
 
@@ -31,9 +32,9 @@ export const handleAuthRoute = async (request: Request, response: Response) => {
   } catch (e: any) {
     resetSession(request);
     return request.session.save(() => sendResponse(response, request, {
-      message: e.message.toLowerCase(),
+      message: 'could not authenticate',
       type: ResponseTypes.Error,
-      data: '',
+      data: e?.message || '',
     }, HttpStatuses.SERVER_ERROR));
   }
 };
