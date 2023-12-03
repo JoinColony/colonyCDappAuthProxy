@@ -72,13 +72,13 @@ export const graphQlProxyRouteHandler: Options = {
         const { operationType, operations, variables } = detectOperation(request.body);
 
         /*
-         * Mutations need to be handled on a case by case basis
+         * Queries are all allowed, while mutations need to be handled on a case by case basis
          * Some are allowed without auth (cache refresh ones)
          * Others based on if the user has the appropriate address and/or role
          */
-        const canExecute = response.locals.canExecute;
+        const canExecute = response.locals.canExecute || operationType === OperationTypes.Query;
 
-        logger(`${userAuthenticated ? `auth-${userAddress}` : 'non-auth'} ${operationType} ${operations} ${JSON.stringify(variables)} from ${requestRemoteAddress} was ${canExecute ? 'ALLOWED' : 'FORBIDDEN'}`);
+        logger(`${userAuthenticated ? `auth` : 'non-auth'} ${operationType} ${operations} ${JSON.stringify(variables)}${userAddress ? ` from ${userAddress}` : ''} at ${requestRemoteAddress} was ${canExecute ? 'ALLOWED' : 'FORBIDDEN'}`);
 
         // allowed
         if (canExecute) {
@@ -96,7 +96,7 @@ export const graphQlProxyRouteHandler: Options = {
       /*
        * Malformed request
        */
-      logger(`${userAuthenticated ? `auth-${userAddress}` : 'non-auth'} request malformed graphql ${request.body ? JSON.stringify(request.body) : ''} from ${requestRemoteAddress}`);
+      logger(`${userAuthenticated ? `auth` : 'non-auth'} request malformed graphql ${request.body ? JSON.stringify(request.body) : ''}${userAddress ? ` from ${userAddress}` : ''} at ${requestRemoteAddress}`);
       return sendResponse(response, request, {
         message: 'malformed graphql request',
         type: ResponseTypes.Error,
@@ -108,7 +108,7 @@ export const graphQlProxyRouteHandler: Options = {
       /*
        * GraphQL error (comes from the AppSync endopoint)
        */
-      logger(`${userAuthenticated ? `auth-${userAddress}` : 'non-auth'} graphql proxy error ${error?.message} ${request.body ? JSON.stringify(request.body) : ''} from ${requestRemoteAddress}`);
+      logger(`${userAuthenticated ? `auth` : 'non-auth'} graphql proxy error ${error?.message} ${request.body ? JSON.stringify(request.body) : ''}${userAddress ? ` from ${userAddress}` : ''} at ${requestRemoteAddress}`);
       return sendResponse(response, request, {
         message: 'graphql error',
         type: ResponseTypes.Error,
