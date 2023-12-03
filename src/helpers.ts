@@ -43,20 +43,18 @@ export const detectOperation = (body: Record<string, any>): {
     throw new RequestError('graphql request malformed');
   }
 
-  /*
-   * @TODO Add proper types
-   */
-  // @ts-ignore
-  if (parsedQuery.definitions[0].operation === OperationTypes.Mutation) {
+  const [{ operation: operationType }] = parsedQuery.definitions || [{}];
+  if (operationType === OperationTypes.Mutation) {
     isMutation = true;
   }
 
-  // @ts-ignore
-  const operations = parsedQuery.definitions[0].selectionSet.selections.map((selection) => selection.name.value);
+  const operationNames = parsedQuery.definitions[0].selectionSet.selections.map(
+    (selection: any) => selection.name.value,
+  );
 
   return {
     operationType: isMutation ? OperationTypes.Mutation : OperationTypes.Query,
-    operations,
+    operations: operationNames,
     variables: body.variables ? JSON.stringify(body.variables) : undefined,
   };
 };
