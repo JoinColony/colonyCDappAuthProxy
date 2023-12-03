@@ -66,15 +66,10 @@ export const graphQlProxyRouteHandler: Options = {
     const requestRemoteAddress = getRemoteIpAddress(request);
     try {
       if (request?.body?.query) {
-        const { operationType, operations, variables } = detectOperation(request.body);
-
         /*
-         * Allow all queries
+         * Used for UI only, the real magic with detection happens in operationExecutionHandler
          */
-        if (operationType === OperationTypes.Query) {
-          logger(`${userAuthenticated ? `auth-${userAddress}` : 'non-auth'} ${operationType} ${operations} ${JSON.stringify(variables)} from ${requestRemoteAddress} was ALLOWED`);
-          return fixRequestBody(proxyRequest, request);
-        }
+        const { operationType, operations, variables } = detectOperation(request.body);
 
         /*
          * Mutations need to be handled on a case by case basis
@@ -83,14 +78,14 @@ export const graphQlProxyRouteHandler: Options = {
          */
         const canExecute = response.locals.canExecute;
 
+        logger(`${userAuthenticated ? `auth-${userAddress}` : 'non-auth'} ${operationType} ${operations} ${JSON.stringify(variables)} from ${requestRemoteAddress} was ${canExecute ? 'ALLOWED' : 'FORBIDDEN'}`);
+
         // allowed
         if (canExecute) {
-          logger(`${userAuthenticated ? `auth-${userAddress}` : 'non-auth'} ${operationType} ${operations} ${JSON.stringify(variables)} from ${requestRemoteAddress} was ALLOWED`);
           return fixRequestBody(proxyRequest, request);
         }
 
         // forbidden
-        logger(`${userAuthenticated ? `auth-${userAddress}` : 'non-auth'} ${operationType} ${operations} ${JSON.stringify(variables)} from ${requestRemoteAddress} was NOT ALLOWED`);
         return sendResponse(response, request, {
           message: 'forbidden',
           type: ResponseTypes.Auth,
@@ -98,13 +93,21 @@ export const graphQlProxyRouteHandler: Options = {
         }, HttpStatuses.FORBIDDEN);
       }
 
+      /*
+       * Malformed request
+       */
       logger(`${userAuthenticated ? `auth-${userAddress}` : 'non-auth'} request malformed graphql ${request.body ? JSON.stringify(request.body) : ''} from ${requestRemoteAddress}`);
       return sendResponse(response, request, {
         message: 'malformed graphql request',
         type: ResponseTypes.Error,
         data: '',
       }, HttpStatuses.SERVER_ERROR);
+
     } catch (error: any) {
+
+      /*
+       * GraphQL error (comes from the AppSync endopoint)
+       */
       logger(`${userAuthenticated ? `auth-${userAddress}` : 'non-auth'} graphql proxy error ${error?.message} ${request.body ? JSON.stringify(request.body) : ''} from ${requestRemoteAddress}`);
       return sendResponse(response, request, {
         message: 'graphql error',
