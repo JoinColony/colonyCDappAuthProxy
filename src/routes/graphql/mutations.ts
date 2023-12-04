@@ -3,7 +3,12 @@ import { ColonyRole } from '@colony/core';
 
 import { logger, detectOperation, tryFetchGraphqlQuery } from '~helpers';
 import { MutationOperations } from '~types';
-import { getColonyAction, getColonyRole, getColonyTokens } from '~queries';
+import {
+  getColonyAction,
+  getColonyRole,
+  getColonyTokens,
+  getWatchedColonies,
+} from '~queries';
 
 const hasMutationPermissions = async (
   operationName: string,
@@ -50,6 +55,11 @@ const hasMutationPermissions = async (
       case MutationOperations.CreateWatchedColonies: {
         const { input: { userID } } = JSON.parse(variables);
         return userID === userAddress;
+      }
+      case MutationOperations.DeleteWatchedColonies: {
+        const { input: { id: relationId } } = JSON.parse(variables);
+        const data = await tryFetchGraphqlQuery(getWatchedColonies, { relationId });
+        return data?.userID === userAddress;
       }
       /*
        * Domains
@@ -108,6 +118,7 @@ const hasMutationPermissions = async (
       /*
        * Always allow, it's just updating cache, anybody can trigger it
        */
+      case MutationOperations.ValidateUserInvite:
       case MutationOperations.GetTokenFromEverywhere:
       case MutationOperations.UpdateContributorsWithReputation: {
         return true;

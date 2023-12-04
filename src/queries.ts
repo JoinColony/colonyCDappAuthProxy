@@ -27,3 +27,11 @@ export const getColonyTokens = /* GraphQL */ `
     }
   }
 `;
+
+export const getWatchedColonies = /* GraphQL */ `
+  query GetWatchedColony($relationId: ID!) {
+    getWatchedColonies(id: $relationId) {
+      userID
+    }
+  }
+`;
