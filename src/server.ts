@@ -1,13 +1,10 @@
 import dotenv from "dotenv";
 import express from "express";
 import cors from "cors";
-import gql from 'graphql-tag';
 
 import routes from '~routes';
-import { HttpStatuses } from '~types';
 
-import { RequestError } from './RequestError';
-import { detectOperation, getStaticOrigin, logger, isDevMode } from './helpers';
+import { getStaticOrigin, isDevMode } from './helpers';
 import ExpressSession from './ExpressSession';
 import { operationExecutionHandler } from '~routes';
 

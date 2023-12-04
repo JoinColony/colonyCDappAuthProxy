@@ -1,5 +1,4 @@
 import { parse } from 'graphql';
-import gql from 'graphql-tag';
 import dotenv from "dotenv";
 import { default as fetch, Request as NodeFetchRequst } from 'node-fetch';
 
