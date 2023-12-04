@@ -21,10 +21,20 @@ export enum MutationOperations {
   UpdateTransaction = 'updateTransaction',
   CreateUserTokens = 'createUserTokens',
   /*
+   * Colony
+   */
+  CreateUniqueColony = 'createUniqueColony',
+  CreateColonyMetadata = 'createColonyMetadata',
+  UpdateColonyMetadata = 'updateColonyMetadata',
+  /*
    * Actions, Mutations
    */
   CreateColonyActionMetadata = 'createColonyActionMetadata',
   CreateAnnotation = 'createAnnotation',
+  /*
+   * Tokens
+   */
+  GetTokenFromEverywhere = 'getTokenFromEverywhere',
 }
 
 export const WhiteListedMutationOperations = [

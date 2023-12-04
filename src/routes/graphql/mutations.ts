@@ -1,8 +1,9 @@
 import { Request } from 'express-serve-static-core';
+import { ColonyRole } from '@colony/core';
 
 import { logger, detectOperation, tryFetchGraphqlQuery } from '~helpers';
 import { MutationOperations } from '~types';
-import { getColonyAction } from '~queries';
+import { getColonyAction, getColonyRole } from '~queries';
 
 const hasMutationPermissions = async (
   operationName: string,
@@ -31,6 +32,22 @@ const hasMutationPermissions = async (
         return userID === userAddress;
       }
       /*
+       * Colony
+       */
+      case MutationOperations.CreateUniqueColony: {
+        const { input: { userId } } = JSON.parse(variables);
+        return userId === userAddress;
+      }
+      case MutationOperations.CreateColonyMetadata:
+      case MutationOperations.UpdateColonyMetadata: {
+        const { input: { id: colonyAddress } } = JSON.parse(variables);
+        const data = await tryFetchGraphqlQuery(
+          getColonyRole,
+          { combinedId: `${colonyAddress}_1_${userAddress}_roles` },
+        );
+        return !!data[`role_${ColonyRole.Root}`];
+      }
+      /*
        * Actions, Mutations
        */
       case MutationOperations.CreateAnnotation:
@@ -42,6 +59,7 @@ const hasMutationPermissions = async (
       /*
        * Always allow, it's just updating cache, anybody can trigger it
        */
+      case MutationOperations.GetTokenFromEverywhere:
       case MutationOperations.UpdateContributorsWithReputation: {
         return true;
       };

@@ -6,3 +6,16 @@ export const getColonyAction = /* GraphQL */ `
     }
   }
 `;
+
+export const getColonyRole = /* GraphQL */ `
+  query GetUserRolesInColony($combinedId: ID!) {
+    getColonyRole(id: $combinedId) {
+      role_0
+      role_1
+      role_2
+      role_3
+      role_5
+      role_6
+    }
+  }
+`;
