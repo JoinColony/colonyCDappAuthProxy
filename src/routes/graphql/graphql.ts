@@ -35,10 +35,17 @@ export const operationExecutionHandler: RequestHandler = async (
   }
 
   const userAddress = request.session.auth?.address || '';
-  const { operations } = detectOperation(request.body);
+  const requestRemoteAddress = getRemoteIpAddress(request);
 
-  response.locals.canExecute = await addressCanExecuteMutation(operations, userAddress);
-  return nextFn();
+  try {
+    const { operations } = detectOperation(request.body);
+
+    response.locals.canExecute = await addressCanExecuteMutation(operations, userAddress);
+    return nextFn();
+  } catch (error: any) {
+    logger(`${userAddress ? `auth-${userAddress}` : 'non-auth'} request malformed graphql ${request.body ? JSON.stringify(request.body) : ''} from ${requestRemoteAddress}`);
+    return sendResponse(response, request, error, HttpStatuses.SERVER_ERROR);
+  }
 };
 
 export const graphQlProxyRouteHandler: Options = {
@@ -61,12 +68,11 @@ export const graphQlProxyRouteHandler: Options = {
       if (request?.body?.query) {
         const { operationType, operations, variables } = detectOperation(request.body);
 
-        logger(`${userAuthenticated ? `auth-${userAddress}` : 'non-auth'} ${operationType} ${operations} ${JSON.stringify(variables)} from ${requestRemoteAddress}`);
-
         /*
          * Allow all queries
          */
         if (operationType === OperationTypes.Query) {
+          logger(`${userAuthenticated ? `auth-${userAddress}` : 'non-auth'} ${operationType} ${operations} ${JSON.stringify(variables)} from ${requestRemoteAddress} was ALLOWED`);
           return fixRequestBody(proxyRequest, request);
         }
 
@@ -79,9 +85,12 @@ export const graphQlProxyRouteHandler: Options = {
 
         // allowed
         if (canExecute) {
+          logger(`${userAuthenticated ? `auth-${userAddress}` : 'non-auth'} ${operationType} ${operations} ${JSON.stringify(variables)} from ${requestRemoteAddress} was ALLOWED`);
           return fixRequestBody(proxyRequest, request);
         }
 
+        // forbidden
+        logger(`${userAuthenticated ? `auth-${userAddress}` : 'non-auth'} ${operationType} ${operations} ${JSON.stringify(variables)} from ${requestRemoteAddress} was NOT ALLOWED`);
         return sendResponse(response, request, {
           message: 'forbidden',
           type: ResponseTypes.Auth,

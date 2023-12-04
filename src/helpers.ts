@@ -10,7 +10,6 @@ import {
   Response,
   Headers,
   ContentTypes,
-  DefinitionTypes,
 } from '~types';
 
 export const isDevMode = (): boolean => process.env.NODE_ENV !== 'prod';
@@ -33,36 +32,27 @@ export const detectOperation = (body: Record<string, any>): {
     isMutation = true;
   }
 
-  const parsedQuery = parse(body.query);
+  let parsedQuery: any;
+  try {
+    parsedQuery = parse(body.query);
+  } catch (error) {
+    // silent
+  }
 
+  if (!parsedQuery) {
+    throw new RequestError('graphql request malformed');
+  }
+
+  /*
+   * @TODO Add proper types
+   */
   // @ts-ignore
   if (parsedQuery.definitions[0].operation === OperationTypes.Mutation) {
     isMutation = true;
   }
 
-  // console.log(obj.definitions[0].operation);
-  // console.log(obj.definitions[0].selectionSet.selections.map((x) => x.name.value));
-
-  const graphqlDocument = gql`${body.query}`;
-
   // @ts-ignore
   const operations = parsedQuery.definitions[0].selectionSet.selections.map((selection) => selection.name.value);
-
-  // graphqlDocument.definitions.map((definition: any) => {
-  //   if (definition.operation === OperationTypes.Mutation) {
-  //     isMutation = true;
-  //   }
-  // });
-
-  // const operations = graphqlDocument.definitions.map((definition: any) => {
-
-  //   return definition.selectionSet.selections.map((selection: any) => {
-  //     console.log(selection)
-  //     if (!!selection?.selectionSet && selection?.name?.value !== 'params') {
-  //       return selection?.name?.value;
-  //     }
-  //   });
-  // }).flat().filter((operation?: string) => !!operation);
 
   return {
     operationType: isMutation ? OperationTypes.Mutation : OperationTypes.Query,
