@@ -43,41 +43,6 @@ const proxyServerInstace = () => {
    */
   routes.map(({ method, url, handler }) => proxyServer[method](url, handler));
 
-  // proxyServer.use((req, res, next) => {
-  //   const userAuthenticated = req.session.auth;
-  //   if (!userAuthenticated) {
-  //     return res.status(HttpStatuses.FORBIDDEN).json({ error: 'Forbidden' });
-  //   }
-  //   return next();
-  // });
-
-  proxyServer.post('/test', async (req: any, res: any) => {
-    try {
-      // verbose
-
-      logger('-----')
-      logger('- body')
-      logger(req.body);
-      if (req.body.query) {
-        const graphqlDocument = gql`${req.body.query}`;
-        logger('- query');
-        logger(gql`${req.body.query}`);
-        logger('- definitions');
-        logger(graphqlDocument.definitions);
-        logger('-');
-      }
-
-      const { operationType, operations, variables } = detectOperation(req.body);
-      logger('Operation: ', operationType, operations, variables);
-
-      logger('----->')
-      return res.sendStatus(HttpStatuses.OK);
-    } catch (requestError: RequestError | any) {
-      logger('GraphQL request malformed', req.body ? JSON.stringify(req.body) : '');
-      return res.status(HttpStatuses.SERVER_ERROR).json(requestError.response);
-    }
-  });
-
   return proxyServer;
 };
 
