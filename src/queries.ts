@@ -19,3 +19,11 @@ export const getColonyRole = /* GraphQL */ `
     }
   }
 `;
+
+export const getColonyTokens = /* GraphQL */ `
+  query GetColonyFromToken($tokenColonyId: ID!) {
+    getColonyTokens(id: $tokenColonyId) {
+      colonyID
+    }
+  }
+`;

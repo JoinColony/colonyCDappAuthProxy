@@ -40,6 +40,8 @@ export enum MutationOperations {
    * Tokens
    */
   GetTokenFromEverywhere = 'getTokenFromEverywhere',
+  CreateColonyTokens = 'createColonyTokens',
+  DeleteColonyTokens = 'deleteColonyTokens',
 }
 
 export const WhiteListedMutationOperations = [

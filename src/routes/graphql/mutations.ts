@@ -3,7 +3,7 @@ import { ColonyRole } from '@colony/core';
 
 import { logger, detectOperation, tryFetchGraphqlQuery } from '~helpers';
 import { MutationOperations } from '~types';
-import { getColonyAction, getColonyRole } from '~queries';
+import { getColonyAction, getColonyRole, getColonyTokens } from '~queries';
 
 const hasMutationPermissions = async (
   operationName: string,
@@ -68,6 +68,30 @@ const hasMutationPermissions = async (
         const { input: { id: actionId } } = JSON.parse(variables);
         const data = await tryFetchGraphqlQuery(getColonyAction, { actionId });
         return data.initiatorAddress === userAddress;
+      }
+      /*
+       * Tokens
+       */
+      case MutationOperations.CreateColonyTokens: {
+        const { input: { colonyID: colonyAddress } } = JSON.parse(variables);
+        const data = await tryFetchGraphqlQuery(
+          getColonyRole,
+          { combinedId: `${colonyAddress}_1_${userAddress}_roles` },
+        );
+        return !!data[`role_${ColonyRole.Root}`];
+      }
+      case MutationOperations.DeleteColonyTokens: {
+        const { input: { id: tokenColonyId } } = JSON.parse(variables);
+        const tokenData = await tryFetchGraphqlQuery(getColonyTokens, { tokenColonyId });
+
+        if (tokenData?.colonyID) {
+          const data = await tryFetchGraphqlQuery(
+            getColonyRole,
+            { combinedId: `${tokenData.colonyID}_1_${userAddress}_roles` },
+          );
+          return !!data[`role_${ColonyRole.Root}`];
+        }
+        return false;
       }
       /*
        * Always allow, it's just updating cache, anybody can trigger it
