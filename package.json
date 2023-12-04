@@ -31,7 +31,7 @@
     "dev": "NODE_ENV=dev nodemon",
     "clean": "rimraf build",
     "build": "npm run clean && tsc && tsc-alias",
-    "prod": "npm run build && NODE_ENV=prod node build/index.js"
+    "prod": "npm run build && node build/index.js"
   },
   "repository": {
     "type": "git",
