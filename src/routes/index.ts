@@ -9,8 +9,9 @@ import {
   handleDeauthRoute,
   handleCheck,
 } from './auth';
-import { graphQlProxyRouteHandler } from './graphql';
+import { graphQlProxyRouteHandler, operationExecutionHandler } from './graphql';
 
+export { operationExecutionHandler };
 
 const routes: RouteHandler[] = [
   /*

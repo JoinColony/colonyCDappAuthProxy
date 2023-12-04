@@ -1,6 +1,6 @@
 import dotenv from "dotenv";
-import { fixRequestBody, Options } from "http-proxy-middleware";
-import { Response, Request } from 'express-serve-static-core';
+import { fixRequestBody, Options, RequestHandler } from "http-proxy-middleware";
+import { Response, Request, NextFunction } from 'express-serve-static-core';
 import { ClientRequest, IncomingMessage } from 'http';
 
 import {
@@ -16,11 +16,30 @@ import {
   ContentTypes,
   Headers,
   OperationTypes,
+  Urls,
+  ServerMethods,
 } from '~types';
 
 import addressCanExecuteMutation from './mutations';
 
 dotenv.config();
+
+export const operationExecutionHandler: RequestHandler = async (
+  request: Request,
+  response: Response,
+  nextFn: NextFunction
+) => {
+  // short circut early
+  if (request.path !== Urls.GraphQL || request.method !== ServerMethods.Post.toUpperCase()) {
+    return nextFn();
+  }
+
+  const userAddress = request.session.auth?.address || '';
+  const { operations } = detectOperation(request.body);
+
+  response.locals.canExecute = await addressCanExecuteMutation(operations, userAddress);
+  return nextFn();
+};
 
 export const graphQlProxyRouteHandler: Options = {
   target: process.env.APPSYNC_API,
@@ -30,7 +49,7 @@ export const graphQlProxyRouteHandler: Options = {
     [Headers.ContentType]: ContentTypes.Json,
   },
   pathRewrite: { '^/graphql': '' },
-  onProxyReq: async (
+  onProxyReq: (
     proxyRequest: ClientRequest,
     request: Request,
     response: Response,
@@ -56,20 +75,20 @@ export const graphQlProxyRouteHandler: Options = {
          * Some are allowed without auth (cache refresh ones)
          * Others based on if the user has the appropriate address and/or role
          */
-        const canExecute = await addressCanExecuteMutation(operations, userAddress);
+        const canExecute = response.locals.canExecute;
 
         // allowed
         if (canExecute) {
           return fixRequestBody(proxyRequest, request);
         }
 
-        // not allowed
         return sendResponse(response, request, {
           message: 'forbidden',
           type: ResponseTypes.Auth,
           data: '',
         }, HttpStatuses.FORBIDDEN);
       }
+
       logger(`${userAuthenticated ? `auth-${userAddress}` : 'non-auth'} request malformed graphql ${request.body ? JSON.stringify(request.body) : ''} from ${requestRemoteAddress}`);
       return sendResponse(response, request, {
         message: 'malformed graphql request',

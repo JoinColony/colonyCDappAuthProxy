@@ -1,6 +1,7 @@
 import gql from 'graphql-tag';
-import { Response as ExpressResponse, Request } from 'express-serve-static-core';
+import { parse } from 'graphql';
 
+import { Response as ExpressResponse, Request } from 'express-serve-static-core';
 import { RequestError } from './RequestError';
 import {
   OperationTypes,
@@ -32,21 +33,36 @@ export const detectOperation = (body: Record<string, any>): {
     isMutation = true;
   }
 
+  const parsedQuery = parse(body.query);
+
+  // @ts-ignore
+  if (parsedQuery.definitions[0].operation === OperationTypes.Mutation) {
+    isMutation = true;
+  }
+
+  // console.log(obj.definitions[0].operation);
+  // console.log(obj.definitions[0].selectionSet.selections.map((x) => x.name.value));
+
   const graphqlDocument = gql`${body.query}`;
 
-  graphqlDocument.definitions.map((definition: any) => {
-    if (definition.operation === OperationTypes.Mutation) {
-      isMutation = true;
-    }
-  });
+  // @ts-ignore
+  const operations = parsedQuery.definitions[0].selectionSet.selections.map((selection) => selection.name.value);
 
-  const operations = graphqlDocument.definitions.map((definition: any) => {
-    return definition.selectionSet.selections.map((selection: any) => {
-      if (!!selection?.selectionSet && selection?.name?.value !== 'params') {
-        return selection?.name?.value;
-      }
-    });
-  }).flat().filter((operation?: string) => !!operation);
+  // graphqlDocument.definitions.map((definition: any) => {
+  //   if (definition.operation === OperationTypes.Mutation) {
+  //     isMutation = true;
+  //   }
+  // });
+
+  // const operations = graphqlDocument.definitions.map((definition: any) => {
+
+  //   return definition.selectionSet.selections.map((selection: any) => {
+  //     console.log(selection)
+  //     if (!!selection?.selectionSet && selection?.name?.value !== 'params') {
+  //       return selection?.name?.value;
+  //     }
+  //   });
+  // }).flat().filter((operation?: string) => !!operation);
 
   return {
     operationType: isMutation ? OperationTypes.Mutation : OperationTypes.Query,

@@ -10,6 +10,13 @@ export enum DefinitionTypes {
   Fragment = 'FragmentDefinition',
 }
 
+/*
+ * Actual operation names were lowercased
+ */
+export enum MutationNames {
+  UpdateContributorsWithReputation = 'updatecontributorswithreputation',
+}
+
 export enum MutationOperations {
   UpdateContributorsWithReputation = 'updateContributorsWithReputation',
 }
