@@ -10,15 +10,20 @@ export enum DefinitionTypes {
   Fragment = 'FragmentDefinition',
 }
 
-/*
- * Actual operation names were lowercased
- */
-export enum MutationNames {
-  UpdateContributorsWithReputation = 'updatecontributorswithreputation',
-}
-
 export enum MutationOperations {
   UpdateContributorsWithReputation = 'updateContributorsWithReputation',
+  /*
+  * User
+  */
+  CreateUniqueUser = 'createUniqueUser',
+  UpdateUserProfile = 'updateProfile',
+  CreateTransaction = 'createTransaction',
+  UpdateTransaction = 'updateTransaction',
+  /*
+   * Actions, Mutations
+   */
+  CreateColonyActionMetadata = 'createColonyActionMetadata',
+  CreateAnnotation = 'createAnnotation',
 }
 
 export const WhiteListedMutationOperations = [
