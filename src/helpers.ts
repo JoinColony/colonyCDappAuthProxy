@@ -1,5 +1,7 @@
-import gql from 'graphql-tag';
 import { parse } from 'graphql';
+import gql from 'graphql-tag';
+import dotenv from "dotenv";
+import { default as fetch, Request as NodeFetchRequst } from 'node-fetch';
 
 import { Response as ExpressResponse, Request } from 'express-serve-static-core';
 import { RequestError } from './RequestError';
@@ -10,7 +12,12 @@ import {
   Response,
   Headers,
   ContentTypes,
+  ServerMethods,
 } from '~types';
+
+dotenv.config();
+
+const BLOCK_TIME = Number(process.env.DEFAULT_BLOCK_TIME) || 5000;
 
 export const isDevMode = (): boolean => process.env.NODE_ENV !== 'prod';
 
@@ -107,3 +114,69 @@ export const logger = (...args: any[]): void => {
   }
   return;
 };
+
+export const graphqlRequest = async (
+  queryOrMutation: string,
+  variables?: Record<string, any>
+) => {
+  const options = {
+    method: ServerMethods.Post.toUpperCase(),
+    headers: {
+      [Headers.ApiKey]: process.env.APPSYNC_API_KEY || '',
+      [Headers.ContentType]: ContentTypes.Json,
+    },
+    body: JSON.stringify({
+      query: queryOrMutation,
+      variables,
+    }),
+  };
+
+  const request = new NodeFetchRequst(process.env.APPSYNC_API || '', options);
+
+  let body;
+  let response;
+
+  try {
+    response = await fetch(request);
+    body = await response.json();
+    return body;
+  } catch (error) {
+    /*
+     * Something went wrong... obviously
+     */
+    console.error(error);
+    return null;
+  }
+};
+
+export const delay = async (timeout: number) => {
+  return new Promise(resolve => {
+    setTimeout(resolve, timeout);
+  });
+}
+
+export const tryFetchGraphqlQuery = async (
+  queryOrMutation: string,
+  variables?: Record<string, any>,
+  maxRetries: number = 3,
+  blockTime: number = BLOCK_TIME
+) => {
+  let currentTry = 0;
+  while (true) {
+    const { data } = await graphqlRequest(queryOrMutation, variables);
+
+    /*
+     * @NOTE That this limits to only fetching one operation at a time
+     */
+    if (data[Object.keys(data)[0]]) {
+      return data[Object.keys(data)[0]];
+    }
+
+    if (currentTry < maxRetries) {
+      await delay(blockTime);
+      currentTry += 1;
+    } else {
+      throw new Error('Could not fetch graphql data in time');
+    }
+  }
+}
