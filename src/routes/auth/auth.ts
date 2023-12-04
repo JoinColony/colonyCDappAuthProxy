@@ -20,14 +20,13 @@ export const handleAuthRoute = async (request: Request, response: Response) => {
     }
 
     let SIWEObject = new SiweMessage(request.body.message);
-    const { data: message } = await SIWEObject.verify({ signature: request.body.signature, nonce: request.session.nonce });
+    const { data: message } = await SIWEObject.verify({ signature: request.body.signature });
 
-    resetSession(request);
     request.session.auth = message;
     request.session.cookie.expires = new Date(Date.now() + (defaultCookieExpiration * 1000));
-    request.session.cookie.httpOnly = false; // read the cookie in the frontend
+    request.session.cookie.httpOnly = true;
 
-    logger(`User ${message.address} was authenticated successfully.`, { message, signature: request.body.signature, nonce: request.session.nonce, cookie: request.session.cookie });
+    logger(`User ${message.address} was authenticated successfully.`, { message, signature: request.body.signature, cookie: request.session.cookie });
 
     return request.session.save(() => sendResponse(response, request, {
       message: 'authenticated',
@@ -36,13 +35,12 @@ export const handleAuthRoute = async (request: Request, response: Response) => {
     }));
 
   } catch (error: any) {
-
+    console.log('caught error', error);
     resetSession(request);
     return request.session.save(() => sendResponse(response, request, {
       message: 'could not authenticate',
       type: ResponseTypes.Error,
       data: error?.message || '',
     }, HttpStatuses.SERVER_ERROR));
-
   }
 };

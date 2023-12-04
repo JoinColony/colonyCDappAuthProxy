@@ -5,8 +5,8 @@ import gql from 'graphql-tag';
 
 import routes from '~routes';
 import { RequestError } from './RequestError';
-import { detectOperation, getStaticOrigin, logger } from './helpers';
-import { HttpStatuses, Urls, ServerMethods } from '~types';
+import { detectOperation, getStaticOrigin, logger, isDevMode } from './helpers';
+import { HttpStatuses } from '~types';
 import ExpressSession from './ExpressSession';
 
 dotenv.config();
@@ -24,9 +24,9 @@ const proxyServerInstace = () => {
   proxyServer.use(ExpressSession({
     name: process.env.COOKIE_NAME,
     secret: process.env.COOKIE_SECRET || 'pleasechangemebeforegoingintoproduction',
-    resave: true,
+    resave: false,
     saveUninitialized: true,
-    cookie: { secure: false, sameSite: true },
+    cookie: { secure: !isDevMode(), sameSite: true },
   }));
 
   proxyServer.set('trust proxy', true);

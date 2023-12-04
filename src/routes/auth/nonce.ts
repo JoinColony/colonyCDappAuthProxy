@@ -5,10 +5,10 @@ import { sendResponse } from '~helpers';
 import { ResponseTypes } from '~types';
 
 export const handleNonceRoute = async (request: Request, response: Response) => {
-  request.session.nonce = generateNonce();
+  const nonce = generateNonce();
   return sendResponse(response, request, {
     message: 'generated',
     type: ResponseTypes.Nonce,
-    data: request.session.nonce || '',
+    data: nonce || '',
   });
 };

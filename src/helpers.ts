@@ -8,6 +8,7 @@ import {
   HttpStatuses,
   Response,
   Headers,
+  ContentTypes,
 } from '~types';
 
 export const isDevMode = (): boolean => process.env.NODE_ENV !== 'prod';
@@ -72,7 +73,7 @@ export const sendResponse = (
   status: HttpStatuses = HttpStatuses.OK,
 ) => response.set({
   [Headers.AllowOrigin]: getStaticOrigin(request.headers.origin),
-  [Headers.ContentType]: 'application/json',
+  [Headers.ContentType]: ContentTypes.Json,
   [Headers.PoweredBy]: 'Colony',
 }).status(status).json(message);
 
@@ -88,8 +89,6 @@ export const getRemoteIpAddress = (request: Request): string =>
 
 export const resetSession = (request: Request): void => {
   request.session.auth = undefined;
-  request.session.nonce = undefined;
-  request.session.save();
 };
 
 export const logger = (...args: any[]): void => {
