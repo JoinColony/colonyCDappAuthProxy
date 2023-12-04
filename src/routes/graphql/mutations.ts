@@ -61,6 +61,15 @@ const hasMutationPermissions = async (
         const data = await tryFetchGraphqlQuery(getWatchedColonies, { relationId });
         return data?.userID === userAddress;
       }
+      case MutationOperations.CreateColonyContributor: {
+        const { input: { contributorAddress } } = JSON.parse(variables);
+        return contributorAddress === userAddress;
+      }
+      case MutationOperations.UpdateColonyContributor: {
+        const { input: { id: combinedContributorId } } = JSON.parse(variables);
+        const [, contributorWalletAddress] = combinedContributorId.split('_');
+        return contributorWalletAddress === userAddress;
+      }
       /*
        * Domains
        */
@@ -75,7 +84,7 @@ const hasMutationPermissions = async (
       case MutationOperations.CreateDomainMetadata:
       case MutationOperations.UpdateDomainMetadata: {
         const { input: { id: combinedId } } = JSON.parse(variables);
-        const colonyAddress = combinedId.split('_')[0];
+        const [colonyAddress] = combinedId.split('_');
         const data = await tryFetchGraphqlQuery(
           getColonyRole,
           { combinedId: `${colonyAddress}_1_${userAddress}_roles` },

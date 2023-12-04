@@ -11,7 +11,6 @@ export enum DefinitionTypes {
 }
 
 export enum MutationOperations {
-  UpdateContributorsWithReputation = 'updateContributorsWithReputation',
   /*
   * User
   */
@@ -29,6 +28,9 @@ export enum MutationOperations {
   CreateWatchedColonies = 'createWatchedColonies',
   DeleteWatchedColonies = 'deleteWatchedColonies',
   ValidateUserInvite = 'validateUserInvite',
+  CreateColonyContributor = 'createColonyContributor',
+  UpdateColonyContributor = 'updateColonyContributor',
+  UpdateContributorsWithReputation = 'updateContributorsWithReputation',
   /*
    * Domains
    */
@@ -47,10 +49,6 @@ export enum MutationOperations {
   CreateColonyTokens = 'createColonyTokens',
   DeleteColonyTokens = 'deleteColonyTokens',
 }
-
-export const WhiteListedMutationOperations = [
-  MutationOperations.UpdateContributorsWithReputation,
-];
 
 export enum HttpStatuses {
   OK = 200,
