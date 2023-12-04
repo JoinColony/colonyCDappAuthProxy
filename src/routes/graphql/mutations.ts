@@ -50,6 +50,14 @@ const hasMutationPermissions = async (
       /*
        * Domains
        */
+      case MutationOperations.CreateDomain: {
+        const { input: { colonyId: colonyAddress } } = JSON.parse(variables);
+        const data = await tryFetchGraphqlQuery(
+          getColonyRole,
+          { combinedId: `${colonyAddress}_1_${userAddress}_roles` },
+        );
+        return !!data[`role_${ColonyRole.Architecture}`];
+      }
       case MutationOperations.CreateDomainMetadata:
       case MutationOperations.UpdateDomainMetadata: {
         const { input: { id: combinedId } } = JSON.parse(variables);

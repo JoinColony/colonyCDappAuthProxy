@@ -29,6 +29,7 @@ export enum MutationOperations {
   /*
    * Domains
    */
+  CreateDomain = 'createDomain',
   CreateDomainMetadata = 'createDomainMetadata',
   UpdateDomainMetadata = 'updateDomainMetadata',
   /*
