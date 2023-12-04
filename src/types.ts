@@ -42,6 +42,7 @@ export enum MutationOperations {
    */
   CreateColonyActionMetadata = 'createColonyActionMetadata',
   CreateAnnotation = 'createAnnotation',
+  CreateColonyDecision = 'createColonyDecision',
   /*
    * Tokens
    */

@@ -127,6 +127,7 @@ const hasMutationPermissions = async (
       /*
        * Always allow, it's just updating cache, anybody can trigger it
        */
+      case MutationOperations.CreateColonyDecision:
       case MutationOperations.ValidateUserInvite:
       case MutationOperations.GetTokenFromEverywhere:
       case MutationOperations.UpdateContributorsWithReputation: {
