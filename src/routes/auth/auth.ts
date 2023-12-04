@@ -26,7 +26,7 @@ export const handleAuthRoute = async (request: Request, response: Response) => {
     request.session.cookie.expires = new Date(Date.now() + (defaultCookieExpiration * 1000));
     request.session.cookie.httpOnly = true;
 
-    logger(`User ${message.address} was authenticated successfully.`, { message, signature: request.body.signature, cookie: request.session.cookie });
+    logger(`User ${message.address} was authenticated successfully.`);
 
     return request.session.save(() => sendResponse(response, request, {
       message: 'authenticated',
@@ -35,7 +35,6 @@ export const handleAuthRoute = async (request: Request, response: Response) => {
     }));
 
   } catch (error: any) {
-    console.log('caught error', error);
     resetSession(request);
     return request.session.save(() => sendResponse(response, request, {
       message: 'could not authenticate',

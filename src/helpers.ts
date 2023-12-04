@@ -9,6 +9,7 @@ import {
   Response,
   Headers,
   ContentTypes,
+  DefinitionTypes,
 } from '~types';
 
 export const isDevMode = (): boolean => process.env.NODE_ENV !== 'prod';
@@ -40,8 +41,12 @@ export const detectOperation = (body: Record<string, any>): {
   });
 
   const operations = graphqlDocument.definitions.map((definition: any) => {
-    return definition.selectionSet.selections.map((selection: any) => selection?.name?.value);
-  }).flat();
+    return definition.selectionSet.selections.map((selection: any) => {
+      if (!!selection?.selectionSet && selection?.name?.value !== 'params') {
+        return selection?.name?.value;
+      }
+    });
+  }).flat().filter((operation?: string) => !!operation);
 
   return {
     operationType: isMutation ? OperationTypes.Mutation : OperationTypes.Query,

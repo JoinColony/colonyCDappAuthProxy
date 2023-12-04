@@ -5,6 +5,11 @@ export enum OperationTypes {
   Mutation = 'mutation',
 }
 
+export enum DefinitionTypes {
+  Operation = 'OperationDefinition',
+  Fragment = 'FragmentDefinition',
+}
+
 export enum MutationOperations {
   UpdateContributorsWithReputation = 'updateContributorsWithReputation',
 }
