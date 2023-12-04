@@ -1,8 +1,13 @@
 import { Response, Request } from 'express-serve-static-core';
 import { SiweMessage } from 'siwe';
+import dotenv from "dotenv";
 
 import { sendResponse, resetSession, logger } from '~helpers';
 import { HttpStatuses, ResponseTypes } from '~types';
+
+dotenv.config();
+
+const defaultCookieExpiration = Number(process.env.COOKIE_EXPIRATION || 3600);
 
 export const handleAuthRoute = async (request: Request, response: Response) => {
   try {
@@ -19,7 +24,7 @@ export const handleAuthRoute = async (request: Request, response: Response) => {
 
     resetSession(request);
     request.session.auth = message;
-    request.session.cookie.expires = new Date(message?.expirationTime || new Date(Date.now() + 3600000));
+    request.session.cookie.expires = new Date(Date.now() + (defaultCookieExpiration * 1000));
     request.session.cookie.httpOnly = false; // read the cookie in the frontend
 
     logger(`User ${message.address} was authenticated successfully.`, { message, signature: request.body.signature, nonce: request.session.nonce, cookie: request.session.cookie });
