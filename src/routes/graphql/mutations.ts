@@ -47,6 +47,10 @@ const hasMutationPermissions = async (
         );
         return !!data[`role_${ColonyRole.Root}`];
       }
+      case MutationOperations.CreateWatchedColonies: {
+        const { input: { userID } } = JSON.parse(variables);
+        return userID === userAddress;
+      }
       /*
        * Domains
        */

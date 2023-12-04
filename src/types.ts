@@ -26,6 +26,7 @@ export enum MutationOperations {
   CreateUniqueColony = 'createUniqueColony',
   CreateColonyMetadata = 'createColonyMetadata',
   UpdateColonyMetadata = 'updateColonyMetadata',
+  CreateWatchedColonies = 'createWatchedColonies',
   /*
    * Domains
    */
