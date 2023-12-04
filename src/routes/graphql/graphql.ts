@@ -38,9 +38,7 @@ export const operationExecutionHandler: RequestHandler = async (
   const requestRemoteAddress = getRemoteIpAddress(request);
 
   try {
-    const { operations } = detectOperation(request.body);
-
-    response.locals.canExecute = await addressCanExecuteMutation(operations, userAddress);
+    response.locals.canExecute = await addressCanExecuteMutation(request);
     return nextFn();
   } catch (error: any) {
     logger(`${userAddress ? `auth-${userAddress}` : 'non-auth'} request malformed graphql ${request.body ? JSON.stringify(request.body) : ''} from ${requestRemoteAddress}`);
@@ -78,7 +76,7 @@ export const graphQlProxyRouteHandler: Options = {
          */
         const canExecute = response.locals.canExecute || operationType === OperationTypes.Query;
 
-        logger(`${userAuthenticated ? `auth` : 'non-auth'} ${operationType} ${operations} ${JSON.stringify(variables)}${userAddress ? ` from ${userAddress}` : ''} at ${requestRemoteAddress} was ${canExecute ? 'ALLOWED' : 'FORBIDDEN'}`);
+        logger(`${userAuthenticated ? `auth` : 'non-auth'} ${operationType} ${operations} ${JSON.stringify(variables).slice(0, 500)}${JSON.stringify(variables).length > 499 ? ` [+${JSON.stringify(variables).length - 499} chars more]` : ''}${userAddress ? ` from ${userAddress}` : ''} at ${requestRemoteAddress} was ${canExecute ? 'ALLOWED' : 'FORBIDDEN'}`);
 
         // allowed
         if (canExecute) {
