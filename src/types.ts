@@ -27,6 +27,11 @@ export enum MutationOperations {
   CreateColonyMetadata = 'createColonyMetadata',
   UpdateColonyMetadata = 'updateColonyMetadata',
   /*
+   * Domains
+   */
+  CreateDomainMetadata = 'createDomainMetadata',
+  UpdateDomainMetadata = 'updateDomainMetadata',
+  /*
    * Actions, Mutations
    */
   CreateColonyActionMetadata = 'createColonyActionMetadata',

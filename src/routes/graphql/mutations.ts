@@ -48,6 +48,19 @@ const hasMutationPermissions = async (
         return !!data[`role_${ColonyRole.Root}`];
       }
       /*
+       * Domains
+       */
+      case MutationOperations.CreateDomainMetadata:
+      case MutationOperations.UpdateDomainMetadata: {
+        const { input: { id: combinedId } } = JSON.parse(variables);
+        const colonyAddress = combinedId.split('_')[0];
+        const data = await tryFetchGraphqlQuery(
+          getColonyRole,
+          { combinedId: `${colonyAddress}_1_${userAddress}_roles` },
+        );
+        return !!data[`role_${ColonyRole.Architecture}`];
+      }
+      /*
        * Actions, Mutations
        */
       case MutationOperations.CreateAnnotation:
