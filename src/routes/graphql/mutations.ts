@@ -26,6 +26,10 @@ const hasMutationPermissions = async (
         const { input: { from } } = JSON.parse(variables);
         return from === userAddress;
       }
+      case MutationOperations.CreateUserTokens: {
+        const { input: { userID } } = JSON.parse(variables);
+        return userID === userAddress;
+      }
       /*
        * Actions, Mutations
        */
