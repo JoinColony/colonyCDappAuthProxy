@@ -20,7 +20,7 @@ export const handleAuthRoute = async (request: Request, response: Response) => {
     }
 
     let SIWEObject = new SiweMessage(request.body.message);
-    const { data: message } = await SIWEObject.verify({ signature: request.body.signature });
+    const { data: message } = await SIWEObject.verify({ signature: request.body.signature, nonce: request.session.nonce });
 
     request.session.auth = message;
     request.session.cookie.expires = new Date(Date.now() + (defaultCookieExpiration * 1000));

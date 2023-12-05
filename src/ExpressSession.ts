@@ -4,6 +4,7 @@ import { SiweMessage } from 'siwe';
 declare module 'express-session' {
   interface SessionData {
     auth?: SiweMessage;
+    nonce?: string;
   }
 }
 

@@ -104,6 +104,7 @@ export const getRemoteIpAddress = (request: Request): string =>
 
 export const resetSession = (request: Request): void => {
   request.session.auth = undefined;
+  request.session.nonce = undefined;
 };
 
 export const logger = (...args: any[]): void => {
