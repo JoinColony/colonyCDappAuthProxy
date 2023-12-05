@@ -6,6 +6,13 @@ on:
   repository_dispatch: # Allows API workflow trigger
     types: [cdapp-auth-proxy]
 
+  push:
+    branches:
+      - master # Automatically deploy on commits to master
+    paths-ignore:
+      - '.github/**'
+      - '**.md'
+
 concurrency:
   group: cdapp-auth-proxy
   cancel-in-progress: true
