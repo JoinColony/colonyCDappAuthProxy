@@ -16,7 +16,7 @@ import {
 
 dotenv.config();
 
-const BLOCK_TIME = Number(process.env.DEFAULT_BLOCK_TIME) || 5000;
+const BLOCK_TIME = Number(process.env.DEFAULT_BLOCK_TIME) * 1000 || 5000;
 
 export const isDevMode = (): boolean => process.env.NODE_ENV !== 'prod';
 
