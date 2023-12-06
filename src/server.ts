@@ -21,7 +21,7 @@ const proxyServerInstace = () => {
     next();
   });
 
-  proxyServer.use(express.json());
+  proxyServer.use(express.json({limit: '1mb'}));
 
   proxyServer.use(cors({
     origin: getStaticOrigin,
