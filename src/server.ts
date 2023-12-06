@@ -13,12 +13,22 @@ dotenv.config();
 const proxyServerInstace = () => {
   const proxyServer = express();
 
+  proxyServer.use(function (req, res, next) {
+    // FIXME WOW THIS IS BAD
+    if (!isDevMode()){
+      req.headers['x-forwarded-proto'] = 'https';
+    }
+    next();
+  });
+
   proxyServer.use(express.json());
 
   proxyServer.use(cors({
     origin: getStaticOrigin,
     credentials: true,
   }));
+
+  proxyServer.set('trust proxy', true);
 
   proxyServer.use(ExpressSession({
     name: process.env.COOKIE_NAME,
@@ -27,8 +37,6 @@ const proxyServerInstace = () => {
     saveUninitialized: true,
     cookie: { secure: !isDevMode(), sameSite: true },
   }));
-
-  proxyServer.set('trust proxy', true);
 
   /*
    * @NOTE Handle async GraphQL logic to decide if we allow a operation or not
