@@ -25,23 +25,23 @@ const hasMutationPermissions = async (
       case MutationOperations.CreateUniqueUser:
       case MutationOperations.UpdateUserProfile: {
         const { input: { id }} = JSON.parse(variables);
-        return id === userAddress;
+        return id?.toLowerCase() === userAddress?.toLowerCase();
       }
       case MutationOperations.CreateTransaction:
       case MutationOperations.UpdateTransaction: {
         const { input: { from } } = JSON.parse(variables);
-        return from === userAddress;
+        return from?.toLowerCase() === userAddress?.toLowerCase();
       }
       case MutationOperations.CreateUserTokens: {
         const { input: { userID } } = JSON.parse(variables);
-        return userID === userAddress;
+        return userID?.toLowerCase() === userAddress?.toLowerCase();
       }
       /*
        * Colony
        */
       case MutationOperations.CreateUniqueColony: {
         const { input: { userId } } = JSON.parse(variables);
-        return userId === userAddress;
+        return userId?.toLowerCase() === userAddress?.toLowerCase();
       }
       case MutationOperations.CreateColonyMetadata:
       case MutationOperations.UpdateColonyMetadata: {
@@ -59,13 +59,13 @@ const hasMutationPermissions = async (
       }
       case MutationOperations.CreateWatchedColonies: {
         const { input: { userID } } = JSON.parse(variables);
-        return userID === userAddress;
+        return userID?.toLowerCase() === userAddress?.toLowerCase();
       }
       case MutationOperations.DeleteWatchedColonies: {
         const { input: { id: relationId } } = JSON.parse(variables);
         try {
           const data = await tryFetchGraphqlQuery(getWatchedColonies, { relationId });
-          return data?.userID === userAddress;
+          return data?.userID?.toLowerCase() === userAddress?.toLowerCase();
         } catch (error) {
           // silent
           return false;
@@ -73,12 +73,12 @@ const hasMutationPermissions = async (
       }
       case MutationOperations.CreateColonyContributor: {
         const { input: { contributorAddress } } = JSON.parse(variables);
-        return contributorAddress === userAddress;
+        return contributorAddress?.toLowerCase() === userAddress?.toLowerCase();
       }
       case MutationOperations.UpdateColonyContributor: {
         const { input: { id: combinedContributorId } } = JSON.parse(variables);
         const [, contributorWalletAddress] = combinedContributorId.split('_');
-        return contributorWalletAddress === userAddress;
+        return contributorWalletAddress?.toLowerCase() === userAddress?.toLowerCase();
       }
       /*
        * Domains
@@ -119,7 +119,7 @@ const hasMutationPermissions = async (
         const { input: { id: actionId } } = JSON.parse(variables);
         try {
           const data = await tryFetchGraphqlQuery(getColonyAction, { actionId });
-          return data.initiatorAddress === userAddress;
+          return data.initiatorAddress?.toLowerCase() === userAddress?.toLowerCase();
         } catch (error) {
           // silent
           return false;
