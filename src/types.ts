@@ -22,15 +22,13 @@ export enum MutationOperations {
   /*
    * Colony
    */
-  CreateUniqueColony = 'createUniqueColony',
   CreateColonyMetadata = 'createColonyMetadata',
   UpdateColonyMetadata = 'updateColonyMetadata',
-  CreateWatchedColonies = 'createWatchedColonies',
-  DeleteWatchedColonies = 'deleteWatchedColonies',
   ValidateUserInvite = 'validateUserInvite',
   CreateColonyContributor = 'createColonyContributor',
   UpdateColonyContributor = 'updateColonyContributor',
   UpdateContributorsWithReputation = 'updateContributorsWithReputation',
+  CreateColonyEtherealMetadata = 'createColonyEtherealMetadata',
   /*
    * Domains
    */

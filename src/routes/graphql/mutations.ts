@@ -7,7 +7,6 @@ import {
   getColonyAction,
   getColonyRole,
   getColonyTokens,
-  getWatchedColonies,
 } from '~queries';
 
 const hasMutationPermissions = async (
@@ -39,10 +38,6 @@ const hasMutationPermissions = async (
       /*
        * Colony
        */
-      case MutationOperations.CreateUniqueColony: {
-        const { input: { userId } } = JSON.parse(variables);
-        return userId?.toLowerCase() === userAddress?.toLowerCase();
-      }
       case MutationOperations.CreateColonyMetadata:
       case MutationOperations.UpdateColonyMetadata: {
         const { input: { id: colonyAddress } } = JSON.parse(variables);
@@ -57,20 +52,6 @@ const hasMutationPermissions = async (
           return false;
         }
       }
-      case MutationOperations.CreateWatchedColonies: {
-        const { input: { userID } } = JSON.parse(variables);
-        return userID?.toLowerCase() === userAddress?.toLowerCase();
-      }
-      case MutationOperations.DeleteWatchedColonies: {
-        const { input: { id: relationId } } = JSON.parse(variables);
-        try {
-          const data = await tryFetchGraphqlQuery(getWatchedColonies, { relationId });
-          return data?.userID?.toLowerCase() === userAddress?.toLowerCase();
-        } catch (error) {
-          // silent
-          return false;
-        }
-      }
       case MutationOperations.CreateColonyContributor: {
         const { input: { contributorAddress } } = JSON.parse(variables);
         return contributorAddress?.toLowerCase() === userAddress?.toLowerCase();
@@ -79,6 +60,10 @@ const hasMutationPermissions = async (
         const { input: { id: combinedContributorId } } = JSON.parse(variables);
         const [, contributorWalletAddress] = combinedContributorId.split('_');
         return contributorWalletAddress?.toLowerCase() === userAddress?.toLowerCase();
+      }
+      case MutationOperations.CreateColonyEtherealMetadata: {
+        const { input: { initiatorAddress } } = JSON.parse(variables);
+        return initiatorAddress?.toLowerCase() === userAddress?.toLowerCase();
       }
       /*
        * Domains
