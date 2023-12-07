@@ -18,7 +18,6 @@ export const handleAuthRoute = async (request: Request, response: Response) => {
         data: '',
       }, HttpStatuses.UNPROCESSABLE)
     }
-    console.log(request.headers)
 
     let SIWEObject = new SiweMessage(request.body.message);
     const { data: message } = await SIWEObject.verify({ signature: request.body.signature, nonce: request.session.nonce });
