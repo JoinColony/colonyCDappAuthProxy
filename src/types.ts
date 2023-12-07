@@ -93,6 +93,7 @@ export enum Headers {
   Cookie = 'Cookie',
   SetCookie = 'Set-Cookie',
   ForwardedFor = 'x-forwarded-for',
+  ForwardedProto = 'x-forwarded-proto',
   ApiKey = 'x-api-key',
   PoweredBy = 'X-Powered-By',
 }

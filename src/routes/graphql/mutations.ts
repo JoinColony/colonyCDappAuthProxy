@@ -25,71 +25,91 @@ const hasMutationPermissions = async (
       case MutationOperations.CreateUniqueUser:
       case MutationOperations.UpdateUserProfile: {
         const { input: { id }} = JSON.parse(variables);
-        return id === userAddress;
+        return id?.toLowerCase() === userAddress?.toLowerCase();
       }
       case MutationOperations.CreateTransaction:
       case MutationOperations.UpdateTransaction: {
         const { input: { from } } = JSON.parse(variables);
-        return from === userAddress;
+        return from?.toLowerCase() === userAddress?.toLowerCase();
       }
       case MutationOperations.CreateUserTokens: {
         const { input: { userID } } = JSON.parse(variables);
-        return userID === userAddress;
+        return userID?.toLowerCase() === userAddress?.toLowerCase();
       }
       /*
        * Colony
        */
       case MutationOperations.CreateUniqueColony: {
         const { input: { userId } } = JSON.parse(variables);
-        return userId === userAddress;
+        return userId?.toLowerCase() === userAddress?.toLowerCase();
       }
       case MutationOperations.CreateColonyMetadata:
       case MutationOperations.UpdateColonyMetadata: {
         const { input: { id: colonyAddress } } = JSON.parse(variables);
-        const data = await tryFetchGraphqlQuery(
-          getColonyRole,
-          { combinedId: `${colonyAddress}_1_${userAddress}_roles` },
-        );
-        return !!data[`role_${ColonyRole.Root}`];
+        try {
+          const data = await tryFetchGraphqlQuery(
+            getColonyRole,
+            { combinedId: `${colonyAddress}_1_${userAddress}_roles` },
+          );
+          return !!data[`role_${ColonyRole.Root}`];
+        } catch (error) {
+          // silent
+          return false;
+        }
       }
       case MutationOperations.CreateWatchedColonies: {
         const { input: { userID } } = JSON.parse(variables);
-        return userID === userAddress;
+        return userID?.toLowerCase() === userAddress?.toLowerCase();
       }
       case MutationOperations.DeleteWatchedColonies: {
         const { input: { id: relationId } } = JSON.parse(variables);
-        const data = await tryFetchGraphqlQuery(getWatchedColonies, { relationId });
-        return data?.userID === userAddress;
+        try {
+          const data = await tryFetchGraphqlQuery(getWatchedColonies, { relationId });
+          return data?.userID?.toLowerCase() === userAddress?.toLowerCase();
+        } catch (error) {
+          // silent
+          return false;
+        }
       }
       case MutationOperations.CreateColonyContributor: {
         const { input: { contributorAddress } } = JSON.parse(variables);
-        return contributorAddress === userAddress;
+        return contributorAddress?.toLowerCase() === userAddress?.toLowerCase();
       }
       case MutationOperations.UpdateColonyContributor: {
         const { input: { id: combinedContributorId } } = JSON.parse(variables);
         const [, contributorWalletAddress] = combinedContributorId.split('_');
-        return contributorWalletAddress === userAddress;
+        return contributorWalletAddress?.toLowerCase() === userAddress?.toLowerCase();
       }
       /*
        * Domains
        */
       case MutationOperations.CreateDomain: {
         const { input: { colonyId: colonyAddress } } = JSON.parse(variables);
-        const data = await tryFetchGraphqlQuery(
-          getColonyRole,
-          { combinedId: `${colonyAddress}_1_${userAddress}_roles` },
-        );
-        return !!data[`role_${ColonyRole.Architecture}`];
+        try {
+          const data = await tryFetchGraphqlQuery(
+            getColonyRole,
+            { combinedId: `${colonyAddress}_1_${userAddress}_roles` },
+          );
+          return !!data[`role_${ColonyRole.Architecture}`];
+        } catch (error) {
+          // silent
+          return false;
+        }
       }
       case MutationOperations.CreateDomainMetadata:
       case MutationOperations.UpdateDomainMetadata: {
         const { input: { id: combinedId } } = JSON.parse(variables);
-        const [colonyAddress] = combinedId.split('_');
-        const data = await tryFetchGraphqlQuery(
-          getColonyRole,
-          { combinedId: `${colonyAddress}_1_${userAddress}_roles` },
-        );
-        return !!data[`role_${ColonyRole.Architecture}`];
+        try {
+          const [colonyAddress] = combinedId.split('_');
+          const data = await tryFetchGraphqlQuery(
+            getColonyRole,
+            { combinedId: `${colonyAddress}_1_${userAddress}_roles` },
+          );
+          return !!data[`role_${ColonyRole.Architecture}`];
+        } catch (error) {
+          // silent
+          return false;
+        }
       }
       /*
        * Actions, Mutations
@@ -97,32 +117,47 @@ const hasMutationPermissions = async (
       case MutationOperations.CreateAnnotation:
       case MutationOperations.CreateColonyActionMetadata: {
         const { input: { id: actionId } } = JSON.parse(variables);
-        const data = await tryFetchGraphqlQuery(getColonyAction, { actionId });
-        return data.initiatorAddress === userAddress;
+        try {
+          const data = await tryFetchGraphqlQuery(getColonyAction, { actionId });
+          return data.initiatorAddress?.toLowerCase() === userAddress?.toLowerCase();
+        } catch (error) {
+          // silent
+          return false;
+        }
       }
       /*
        * Tokens
        */
       case MutationOperations.CreateColonyTokens: {
         const { input: { colonyID: colonyAddress } } = JSON.parse(variables);
-        const data = await tryFetchGraphqlQuery(
-          getColonyRole,
-          { combinedId: `${colonyAddress}_1_${userAddress}_roles` },
-        );
-        return !!data[`role_${ColonyRole.Root}`];
+        try {
+          const data = await tryFetchGraphqlQuery(
+            getColonyRole,
+            { combinedId: `${colonyAddress}_1_${userAddress}_roles` },
+          );
+          return !!data[`role_${ColonyRole.Root}`];
+        } catch (error) {
+          // silent
+          return false;
+        }
       }
       case MutationOperations.DeleteColonyTokens: {
         const { input: { id: tokenColonyId } } = JSON.parse(variables);
-        const tokenData = await tryFetchGraphqlQuery(getColonyTokens, { tokenColonyId });
+        try {
+          const tokenData = await tryFetchGraphqlQuery(getColonyTokens, { tokenColonyId });
 
-        if (tokenData?.colonyID) {
-          const data = await tryFetchGraphqlQuery(
-            getColonyRole,
-            { combinedId: `${tokenData.colonyID}_1_${userAddress}_roles` },
-          );
-          return !!data[`role_${ColonyRole.Root}`];
+          if (tokenData?.colonyID) {
+            const data = await tryFetchGraphqlQuery(
+              getColonyRole,
+              { combinedId: `${tokenData.colonyID}_1_${userAddress}_roles` },
+            );
+            return !!data[`role_${ColonyRole.Root}`];
+          }
+          return false;
+        } catch (error) {
+          // silent
+          return false;
         }
-        return false;
       }
       /*
        * Always allow, it's just updating cache, anybody can trigger it
