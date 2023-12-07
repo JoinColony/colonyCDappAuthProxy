@@ -7,6 +7,7 @@ import routes from '~routes';
 import { getStaticOrigin, isDevMode } from './helpers';
 import ExpressSession from './ExpressSession';
 import { operationExecutionHandler } from '~routes';
+import { Headers } from "~types";
 
 dotenv.config();
 
@@ -16,7 +17,7 @@ const proxyServerInstace = () => {
   proxyServer.use(function (req, res, next) {
     // FIXME WOW THIS IS BAD
     if (!isDevMode()){
-      req.headers['x-forwarded-proto'] = 'https';
+      req.headers[Headers.ForwardedProto] = 'https';
     }
     next();
   });
