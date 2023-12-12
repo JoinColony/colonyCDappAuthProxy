@@ -17,6 +17,7 @@ const proxyServerInstace = () => {
   proxyServer.use(function (req, res, next) {
     // FIXME WOW THIS IS BAD
     if (!isDevMode()){
+      console.log("real headers", req.headers);
       req.headers[Headers.ForwardedProto] = 'https';
     }
     next();
