@@ -72,6 +72,8 @@ export const getStaticOrigin = (origin?: string, callback?: StaticOriginCallback
       isAllowedOrigin = true;
     }
   };
+  console.log('AUTH ORIGIN', origin);
+  console.log('AUTH ORIGIN ENV', process.env.ORIGIN_URL);
   if (origin === process.env.ORIGIN_URL) {
     isAllowedOrigin = true;
   }
