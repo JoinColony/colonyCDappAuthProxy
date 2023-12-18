@@ -15,11 +15,26 @@ const proxyServerInstace = () => {
   const proxyServer = express();
 
   proxyServer.use(function (req, res, next) {
-    // FIXME WOW THIS IS BAD
-    if (!isDevMode()){
+    // This is not ideal, but better than it was.
+    // Get the last protocol in the chain, and if it's https, set the header to just https
+    // if we're not in devmode
+    const xForwardedHeaders = req.headers[Headers.ForwardedProto];
+    if (!xForwardedHeaders || isDevMode()) {
+      // If there weren't any headers, or we're in devmode, just return
+      return next();
+    }
+    let xForwardedHeadersAsString = "";
+
+    // So there were headers, and we're not in devmode.
+    if (typeof xForwardedHeaders === "string") {
+      xForwardedHeadersAsString = xForwardedHeaders;
+    } else {
+      xForwardedHeadersAsString = xForwardedHeaders.join(', ');
+    }
+    if (xForwardedHeadersAsString.split(', ').at(-1) === 'https'){
       req.headers[Headers.ForwardedProto] = 'https';
     }
-    next();
+    return next();
   });
 
   proxyServer.use(express.json({limit: '1mb'}));

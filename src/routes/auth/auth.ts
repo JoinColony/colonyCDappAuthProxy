@@ -20,6 +20,13 @@ export const handleAuthRoute = async (request: Request, response: Response) => {
     }
 
     let SIWEObject = new SiweMessage(request.body.message);
+    if (!request.session.nonce) {
+      return sendResponse(response, request, {
+        message: 'No nonce found in session. Please request a nonce first.',
+        type: ResponseTypes.Error,
+        data: '',
+      }, HttpStatuses.UNPROCESSABLE);
+    }
     const { data: message } = await SIWEObject.verify({ signature: request.body.signature, nonce: request.session.nonce });
 
     request.session.auth = message;
