@@ -177,14 +177,15 @@ export const tryFetchGraphqlQuery = async (
   variables?: Record<string, any>,
   maxRetries: number = 3,
   blockTime: number = BLOCK_TIME,
+  log?: boolean,
 ) => {
-  if (queryOrMutation === 'getColonyAction') {
+  if (log) {
     console.log({ blockTime });
   }
   let currentTry = 0;
   while (true) {
     const { data } = await graphqlRequest(queryOrMutation, variables);
-    if (queryOrMutation === 'getColonyAction') {
+    if (log) {
       console.log({ currentTry, data });
     }
 
@@ -192,20 +193,20 @@ export const tryFetchGraphqlQuery = async (
      * @NOTE That this limits to only fetching one operation at a time
      */
     if (data[Object.keys(data)[0]]) {
-      if (queryOrMutation === 'getColonyAction') {
+      if (log) {
         console.log('tryFetchGraphqlQuery should return data');
       }
       return data[Object.keys(data)[0]];
     }
 
     if (currentTry < maxRetries) {
-      if (queryOrMutation === 'getColonyAction') {
+      if (log) {
         console.log('Delaying...');
       }
       await delay(blockTime);
       currentTry += 1;
     } else {
-      if (queryOrMutation === 'getColonyAction') {
+      if (log) {
         console.log('tryFetchGraphqlQuery should error');
       }
       throw new Error('Could not fetch graphql data in time');

@@ -123,9 +123,15 @@ const hasMutationPermissions = async (
         console.log({ actionId });
         try {
           console.log('Fetching action data');
-          const data = await tryFetchGraphqlQuery(getColonyAction, {
-            actionId,
-          });
+          const data = await tryFetchGraphqlQuery(
+            getColonyAction,
+            {
+              actionId,
+            },
+            undefined,
+            undefined,
+            true,
+          );
           console.log('Action data fetched');
           console.log(
             'Allow?: ',
