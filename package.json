@@ -4,7 +4,7 @@
   "description": "Proxy Authentication Service intended to replace AWS_LAMBDA authentication until amplify starts working correctly locally",
   "main": "build/index.js",
   "dependencies": {
-    "@colony/core": "^2.0.0",
+    "@colony/core": "^2.0.1",
     "cors": "^2.8.5",
     "express": "^4.18.2",
     "express-session": "^1.17.3",
