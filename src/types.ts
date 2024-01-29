@@ -12,8 +12,8 @@ export enum DefinitionTypes {
 
 export enum MutationOperations {
   /*
-  * User
-  */
+   * User
+   */
   CreateUniqueUser = 'createUniqueUser',
   UpdateUserProfile = 'updateProfile',
   CreateTransaction = 'createTransaction',
@@ -55,7 +55,7 @@ export enum HttpStatuses {
   FORBIDDEN = 403,
   SERVER_ERROR = 500,
   UNPROCESSABLE = 422,
-};
+}
 
 export enum ResponseTypes {
   Nonce = 'nonce',
@@ -69,7 +69,7 @@ export type Response = {
   message: string;
   type: ResponseTypes;
   data?: string | number | boolean | string[] | number[] | boolean[];
-}
+};
 
 export enum Urls {
   GraphQL = '/graphql',
@@ -94,10 +94,18 @@ export enum Headers {
   ForwardedProto = 'x-forwarded-proto',
   ApiKey = 'x-api-key',
   PoweredBy = 'X-Powered-By',
+  WalletAddress = 'x-wallet-address',
 }
 
-export type StaticOrigin = boolean | string | RegExp | (boolean | string | RegExp)[];
-export type StaticOriginCallback = (err: Error | null, origin?: StaticOrigin | undefined) => void;
+export type StaticOrigin =
+  | boolean
+  | string
+  | RegExp
+  | (boolean | string | RegExp)[];
+export type StaticOriginCallback = (
+  err: Error | null,
+  origin?: StaticOrigin | undefined,
+) => void;
 
 export enum ServerMethods {
   Post = 'post',
