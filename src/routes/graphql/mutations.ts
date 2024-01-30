@@ -8,6 +8,7 @@ import {
   getColonyRole,
   getColonyTokens,
 } from '~queries';
+import { getColonyAddressFromMutationId } from './utils';
 
 const hasMutationPermissions = async (
   operationName: string,
@@ -41,8 +42,7 @@ const hasMutationPermissions = async (
       case MutationOperations.CreateColonyMetadata:
       case MutationOperations.UpdateColonyMetadata: {
         const { input: { id } } = JSON.parse(variables);
-        const regex = /0x[a-fA-F0-9]{40}/;
-        const colonyAddress = id.match(regex);
+        const colonyAddress = getColonyAddressFromMutationId(id);
 
         try {
           const data = await tryFetchGraphqlQuery(
