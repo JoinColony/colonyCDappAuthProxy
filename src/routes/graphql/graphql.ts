@@ -167,7 +167,6 @@ export const graphQlProxyRouteHandler: Options = {
       );
     }
   },
-  // selfHandleResponse: true,
   onProxyRes: (proxyResponse: IncomingMessage, request: Request) => {
     proxyResponse.headers[Headers.AllowOrigin] = getStaticOrigin(
       request.headers.origin,

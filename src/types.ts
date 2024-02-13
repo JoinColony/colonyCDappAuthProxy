@@ -78,6 +78,8 @@ export enum Urls {
   Auth = '/auth',
   DeAuth = '/deauth',
   Check = '/check',
+  SegmentProjects = '/ui-events/v1/projects/*',
+  SegmentTrack = '/ui-events/*',
 }
 
 export enum ContentTypes {
