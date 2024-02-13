@@ -11,7 +11,7 @@ import {
   Response,
   Headers,
   ContentTypes,
-  ServerMethods,
+  RequestMethods,
 } from '~types';
 
 dotenv.config();
@@ -120,7 +120,7 @@ export const graphqlRequest = async (
   variables?: Record<string, any>
 ) => {
   const options = {
-    method: ServerMethods.Post.toUpperCase(),
+    method: RequestMethods.Post,
     headers: {
       [Headers.ApiKey]: process.env.APPSYNC_API_KEY || '',
       [Headers.ContentType]: ContentTypes.Json,

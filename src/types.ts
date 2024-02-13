@@ -63,6 +63,7 @@ export enum ResponseTypes {
   Error = 'error',
   Auth = 'authentication',
   Status = 'status',
+  UIEvent = 'ui-event',
 }
 
 export type Response = {
@@ -109,14 +110,36 @@ export type StaticOriginCallback = (
   origin?: StaticOrigin | undefined,
 ) => void;
 
-export enum ServerMethods {
+export enum ExpressServerMethods {
   Post = 'post',
   Get = 'get',
   Use = 'use',
 }
 
+export enum RequestMethods {
+  Post = 'POST',
+  Get = 'GET',
+}
+
 export interface RouteHandler {
-  method: ServerMethods;
+  method: ExpressServerMethods;
   url: Urls;
   handler: RequestHandler;
+}
+
+// These should really be defined by the "stream" module
+// But I couldn't for the life of me find either the exported types
+// or where they are defined
+export enum StreamEvent {
+  Close = 'close',
+  Data = 'data',
+  End = 'end',
+  Error = 'error',
+  Pause = 'pause',
+  Readable = 'readable',
+  Resume = 'resume',
+}
+
+export enum Encoding {
+  Utf8 = 'utf8',
 }

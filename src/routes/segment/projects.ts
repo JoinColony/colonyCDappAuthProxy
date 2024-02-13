@@ -7,7 +7,7 @@ import { IncomingMessage } from 'http';
 //@ts-ignore
 import modifyResponse from 'node-http-proxy-json';
 
-import { logger } from '~helpers';
+import { logger, getStaticOrigin } from '~helpers';
 import { ContentTypes, Headers,} from '~types';
 import { ExternalUrls } from '~constants';
 
@@ -23,6 +23,10 @@ export const segmentProjectsProxyRouteHandler: Options = {
   // the project settings
   pathRewrite: () => `/v1/projects/${process.env.SEGMENT_WRITE_KEY}/settings`,
   onProxyRes: (proxyResponse: IncomingMessage, request: Request, response: Response) => {
+    proxyResponse.headers[Headers.AllowOrigin] = getStaticOrigin(
+      request.headers.origin,
+    );
+    proxyResponse.headers[Headers.PoweredBy] = 'Colony';
     modifyResponse(response, proxyResponse, (body: Record<string, any>) => {
       if (body) {
         // Don't return the API key to the client
@@ -31,7 +35,7 @@ export const segmentProjectsProxyRouteHandler: Options = {
       }
       return body;
     });
-    logger(`Forwarded SEGMENT settings for project ${process.env.SEGMENT_WRITE_KEY}`);
+    logger(`Proxied SEGMENT settings for project ${process.env.SEGMENT_WRITE_KEY}`);
   },
   logProvider: () => ({
     log: logger,
