@@ -47,6 +47,10 @@ export enum MutationOperations {
   GetTokenFromEverywhere = 'getTokenFromEverywhere',
   CreateColonyTokens = 'createColonyTokens',
   DeleteColonyTokens = 'deleteColonyTokens',
+  /*
+   * Expenditures
+   */
+  CreateExpenditureMetadata = 'createExpenditureMetadata',
 }
 
 export enum HttpStatuses {

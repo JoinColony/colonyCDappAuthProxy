@@ -41,7 +41,7 @@ const hasMutationPermissions = async (
        * Colony
        */
       /**
-       * NOTE: Metadata can be created as part of the motion process, so we need to allow
+       * @NOTE: Metadata can be created as part of the motion process, so we need to allow
        * those mutations even for users with no permissions
        */
       case MutationOperations.CreateColonyMetadata: {
@@ -100,7 +100,7 @@ const hasMutationPermissions = async (
         }
       }
       /**
-       * NOTE: Metadata can be created as part of the motion process, so we need to allow
+       * @NOTE: Metadata can be created as part of the motion process, so we need to allow
        * those mutations even for users with no permissions
        */
       case MutationOperations.CreateDomainMetadata: {
@@ -166,6 +166,12 @@ const hasMutationPermissions = async (
           // silent
           return false;
         }
+      }
+      /**
+       * Expenditures
+       */
+      case MutationOperations.CreateExpenditureMetadata: {
+        return true;
       }
       /*
        * Always allow, it's just updating cache, anybody can trigger it
