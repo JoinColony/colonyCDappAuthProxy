@@ -40,13 +40,6 @@ const hasMutationPermissions = async (
       /*
        * Colony
        */
-      /**
-       * @NOTE: Metadata can be created as part of the motion process, so we need to allow
-       * those mutations even for users with no permissions
-       */
-      case MutationOperations.CreateColonyMetadata: {
-        return true;
-      }
       case MutationOperations.UpdateColonyMetadata: {
         const {
           input: { id: colonyAddress },
@@ -98,13 +91,6 @@ const hasMutationPermissions = async (
           // silent
           return false;
         }
-      }
-      /**
-       * @NOTE: Metadata can be created as part of the motion process, so we need to allow
-       * those mutations even for users with no permissions
-       */
-      case MutationOperations.CreateDomainMetadata: {
-        return true;
       }
       case MutationOperations.UpdateDomainMetadata: {
         return true;
@@ -173,6 +159,12 @@ const hasMutationPermissions = async (
       case MutationOperations.CreateExpenditureMetadata: {
         return true;
       }
+      /**
+       * Metadata can be created as part of the motion process, so we need to allow
+       * those mutations even for users with no permissions
+       */
+      case MutationOperations.CreateColonyMetadata:
+      case MutationOperations.CreateDomainMetadata:
       /*
        * Always allow, it's just updating cache, anybody can trigger it
        */
