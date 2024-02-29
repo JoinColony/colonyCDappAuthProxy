@@ -29,6 +29,7 @@ export enum MutationOperations {
   UpdateColonyContributor = 'updateColonyContributor',
   UpdateContributorsWithReputation = 'updateContributorsWithReputation',
   CreateColonyEtherealMetadata = 'createColonyEtherealMetadata',
+  RemoveMemberFromColonyWhitelist = "removeMemberFromColonyWhitelist",
   /*
    * Domains
    */
