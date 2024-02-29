@@ -1,6 +1,6 @@
 import { createProxyMiddleware } from "http-proxy-middleware";
 
-import { RouteHandler, ServerMethods, Urls } from '~types';
+import { RouteHandler, ExpressServerMethods, Urls } from '~types';
 
 import { handleHealthRoute } from './health';
 import {
@@ -10,6 +10,10 @@ import {
   handleCheck,
 } from './auth';
 import { graphQlProxyRouteHandler, operationExecutionHandler } from './graphql';
+import {
+  segmentProjectsProxyRouteHandler,
+  handleSegmentTracking,
+ } from './segment';
 
 export { operationExecutionHandler };
 
@@ -18,7 +22,7 @@ const routes: RouteHandler[] = [
    * Server Health
    */
   {
-    method: ServerMethods.Get,
+    method: ExpressServerMethods.Get,
     url: Urls.Health,
     handler: handleHealthRoute,
   },
@@ -26,22 +30,22 @@ const routes: RouteHandler[] = [
    * Auth
    */
   {
-    method: ServerMethods.Get,
+    method: ExpressServerMethods.Get,
     url: Urls.Nonce,
     handler: handleNonceRoute,
   },
   {
-    method: ServerMethods.Post,
+    method: ExpressServerMethods.Post,
     url: Urls.Auth,
     handler: handleAuthRoute,
   },
   {
-    method: ServerMethods.Post,
+    method: ExpressServerMethods.Post,
     url: Urls.DeAuth,
     handler: handleDeauthRoute,
   },
   {
-    method: ServerMethods.Get,
+    method: ExpressServerMethods.Get,
     url: Urls.Check,
     handler: handleCheck,
   },
@@ -49,9 +53,22 @@ const routes: RouteHandler[] = [
    * GraphQL
    */
   {
-    method: ServerMethods.Use,
+    method: ExpressServerMethods.Use,
     url: Urls.GraphQL,
     handler: createProxyMiddleware(graphQlProxyRouteHandler),
+  },
+  /*
+   * Segment
+   */
+  {
+    method: ExpressServerMethods.Get,
+    url: Urls.SegmentProjects,
+    handler: createProxyMiddleware(segmentProjectsProxyRouteHandler),
+  },
+  {
+    method: ExpressServerMethods.Post,
+    url: Urls.SegmentTrack,
+    handler: handleSegmentTracking,
   },
 ];
 
