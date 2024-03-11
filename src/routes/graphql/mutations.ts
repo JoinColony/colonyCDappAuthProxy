@@ -107,7 +107,6 @@ const hasMutationPermissions = async (
       /*
        * Actions, Mutations
        */
-      case MutationOperations.CreateAnnotation:
       case MutationOperations.CreateColonyActionMetadata: {
         const {
           input: { id: actionId },
@@ -165,7 +164,8 @@ const hasMutationPermissions = async (
       /**
        * Expenditures
        */
-      case MutationOperations.CreateExpenditureMetadata: {
+      case MutationOperations.CreateExpenditureMetadata:
+      case MutationOperations.CreateAnnotation: {
         return true;
       }
       /**
