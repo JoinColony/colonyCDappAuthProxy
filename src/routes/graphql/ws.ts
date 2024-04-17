@@ -4,15 +4,17 @@ import WebSocket from 'ws';
 
 import { logger } from '~helpers';
 
+// In production the Amplify WebSocket API is secure and requires a different endpoint
 const PROTOCOL = process.env.NODE_ENV === 'dev' ? 'ws' : 'wss';
-const WS_HOST = new URL('/', process.env.APPSYNC_API).host;
+const WS_ENDPOINT = process.env.NODE_ENV === 'dev' ? process.env.APPSYNC_API : process.env.APPSYNC_WSS_API;
+const WS_HOST = new URL('/', WS_ENDPOINT).host;
 
 const wss = new WebSocket.Server({ noServer: true });
 
 // Custom websocker upgrade handler
 // This proxies websocket requests and adds the necessary headers for Amplify authorization if applicable
 export const handleWsUpgrade = (req: InstanceType<typeof IncomingMessage>, socket: Duplex, head: Buffer) => {
-    const url = new URL(req.url || '', process.env.APPSYNC_API);
+    const url = new URL(req.url || '', WS_ENDPOINT);
     const authHeaders = {
         host: WS_HOST,
         // Creates a date in the format YYYYMMDDTHHMMSSZ
