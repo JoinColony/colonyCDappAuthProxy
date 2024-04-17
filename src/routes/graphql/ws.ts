@@ -4,17 +4,18 @@ import WebSocket from 'ws';
 
 import { logger } from '~helpers';
 
+// The host of the AppSync API (non-realtime)
+const WS_HOST = new URL('/', process.env.APPSYNC_API).host;
 // In production the Amplify WebSocket API is secure and requires a different endpoint
-const PROTOCOL = process.env.NODE_ENV === 'dev' ? 'ws' : 'wss';
-const WS_ENDPOINT = process.env.NODE_ENV === 'dev' ? process.env.APPSYNC_API : process.env.APPSYNC_WSS_API;
-const WS_HOST = new URL('/', WS_ENDPOINT).host;
+const WS_ENDPOINT = process.env.NODE_ENV === 'dev' ? `ws://${WS_HOST}` : process.env.APPSYNC_WSS_API;
 
 const wss = new WebSocket.Server({ noServer: true });
 
 // Custom websocker upgrade handler
 // This proxies websocket requests and adds the necessary headers for Amplify authorization if applicable
 export const handleWsUpgrade = (req: InstanceType<typeof IncomingMessage>, socket: Duplex, head: Buffer) => {
-    const url = new URL(req.url || '', WS_ENDPOINT);
+    // localhost is fine here, we're just using the path and the query string
+    const url = new URL(req.url || '', 'http://localhost');
     const authHeaders = {
         host: WS_HOST,
         // Creates a date in the format YYYYMMDDTHHMMSSZ
@@ -25,12 +26,10 @@ export const handleWsUpgrade = (req: InstanceType<typeof IncomingMessage>, socke
     url.searchParams.set('header', btoa((JSON.stringify(authHeaders))));
     const proxyPath = `${url.pathname}?${url.searchParams.toString()}`
     // Establish a websocket connection to Amplify
-    const targetWs = new WebSocket(`${PROTOCOL}://${WS_HOST}${proxyPath}`, 'graphql-ws', {
-        headers: {
-            'Sec-WebSocket-Version': req.headers['sec-websocket-version'],
-            'Sec-WebSocket-Key': req.headers['sec-websocket-key']
-        },
-    });
+    const targetWs = new WebSocket(
+        `${WS_ENDPOINT}${proxyPath}`,
+        req.headers['sec-websocket-protocol'] || 'graphql-ws',
+    );
     targetWs.on('open', () => {
         wss.handleUpgrade(req, socket, head, (ws) => {
             // Add authorization headers to incoming client messages
@@ -49,12 +48,13 @@ export const handleWsUpgrade = (req: InstanceType<typeof IncomingMessage>, socke
                     };
                     return targetWs.send(JSON.stringify(parsed));
                 }
-                targetWs.send(data);
+                targetWs.send(data.toString());
             });
             ws.on('close', () => {
                 targetWs.close();
             });
-            ws.on('error', () => {
+            ws.on('error', (err) => {
+                logger('WebSocket error from client: ', err);
                 targetWs.close();
             });
 
@@ -65,7 +65,8 @@ export const handleWsUpgrade = (req: InstanceType<typeof IncomingMessage>, socke
             targetWs.on('close', () => {
                 ws.close();
             });
-            targetWs.on('error', () => {
+            targetWs.on('error', (err) => {
+                logger('WebSocket error from Amplify: ', err);
                 ws.close();
             });
         });

@@ -3,7 +3,6 @@ import dotenv from "dotenv";
 import proxyServerInstance from './server';
 import { handleWsUpgrade } from './routes/graphql/ws';
 
-
 dotenv.config();
 
 const port = process.env.DEFAULT_PORT || 3005;
