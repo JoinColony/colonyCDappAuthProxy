@@ -29,7 +29,7 @@ export enum MutationOperations {
   UpdateColonyContributor = 'updateColonyContributor',
   UpdateContributorsWithReputation = 'updateContributorsWithReputation',
   CreateColonyEtherealMetadata = 'createColonyEtherealMetadata',
-  RemoveMemberFromColonyWhitelist = "removeMemberFromColonyWhitelist",
+  RemoveMemberFromColonyWhitelist = 'removeMemberFromColonyWhitelist',
   /*
    * Domains
    */
@@ -52,6 +52,7 @@ export enum MutationOperations {
    * Expenditures
    */
   CreateExpenditureMetadata = 'createExpenditureMetadata',
+  CreateStreamingPaymentMetadata = 'createStreamingPaymentMetadata',
 }
 
 export enum HttpStatuses {

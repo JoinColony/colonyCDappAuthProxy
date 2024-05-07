@@ -165,6 +165,7 @@ const hasMutationPermissions = async (
        * Expenditures
        */
       case MutationOperations.CreateExpenditureMetadata:
+      case MutationOperations.CreateStreamingPaymentMetadata:
       case MutationOperations.CreateAnnotation: {
         return true;
       }
