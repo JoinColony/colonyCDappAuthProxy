@@ -95,15 +95,6 @@ const hasMutationPermissions = async (
       case MutationOperations.UpdateDomainMetadata: {
         return true;
       }
-      case MutationOperations.RemoveMemberFromColonyWhitelist: {
-        const {
-          input: { userAddress: userAddressToRemove },
-        } = JSON.parse(variables);
-        // Ensure that a user can only remove themselves from the whitelist, not another user
-        return (
-          userAddressToRemove?.toLowerCase() === userAddress?.toLowerCase()
-        );
-      }
       /*
        * Actions, Mutations
        */
