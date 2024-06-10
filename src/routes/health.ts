@@ -7,4 +7,4 @@ export const handleHealthRoute = async (request: Request, response: Response) =>
   message: 'ok',
   type: ResponseTypes.Health,
   data: '',
-})
+});
