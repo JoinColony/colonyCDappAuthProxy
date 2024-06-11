@@ -10,7 +10,8 @@
     "express-session": "^1.17.3",
     "http-proxy-middleware": "^2.0.6",
     "node-fetch": "2.6",
-    "siwe": "^2.1.4"
+    "siwe": "^2.1.4",
+    "ws": "^8.16.0"
   },
   "devDependencies": {
     "@types/cors": "^2.8.16",
@@ -19,6 +20,7 @@
     "@types/graphql": "^14.5.0",
     "@types/node": "^20.9.0",
     "@types/node-fetch": "^2.6.9",
+    "@types/ws": "^8.5.10",
     "dotenv": "^16.3.1",
     "nodemon": "^3.0.1",
     "rimraf": "^5.0.5",
