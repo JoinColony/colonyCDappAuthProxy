@@ -20,10 +20,38 @@ export const getColonyRole = /* GraphQL */ `
   }
 `;
 
+export const getAllColonyRoles = /* GraphQL */ `
+  query GetAllColonyRoles($targetAddress: ID!, $colonyAddress: ID!) {
+    getRoleByTargetAddressAndColony(
+      targetAddress: $targetAddress
+      colonyAddress: { eq: $colonyAddress }
+    ) {
+      items {
+        id
+        role_0
+        role_1
+        role_2
+        role_3
+        role_5
+        role_6
+      }
+    }
+  }
+`;
+
 export const getColonyTokens = /* GraphQL */ `
   query GetColonyFromToken($tokenColonyId: ID!) {
     getColonyTokens(id: $tokenColonyId) {
       colonyID
+    }
+  }
+`;
+
+export const getStreamingPayment = /* GraphQL */ `
+  query GetStreamingPayment($streamingPaymentId: ID!) {
+    getStreamingPayment(id: $streamingPaymentId) {
+      id
+      nativeDomainId
     }
   }
 `;

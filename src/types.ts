@@ -52,6 +52,7 @@ export enum MutationOperations {
    */
   CreateExpenditureMetadata = 'createExpenditureMetadata',
   CreateStreamingPaymentMetadata = 'createStreamingPaymentMetadata',
+  UpdateStreamingPaymentMetadata = 'updateStreamingPaymentMetadata',
 }
 
 export enum HttpStatuses {
@@ -123,3 +124,13 @@ export interface RouteHandler {
   url: Urls;
   handler: RequestHandler;
 }
+
+export type UserRole = {
+  id: string;
+  role_0: boolean | null;
+  role_1: boolean | null;
+  role_2: boolean | null;
+  role_3: boolean | null;
+  role_5: boolean | null;
+  role_6: boolean | null;
+};

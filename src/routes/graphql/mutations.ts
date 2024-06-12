@@ -1,9 +1,15 @@
 import { Request } from 'express-serve-static-core';
-import { ColonyRole } from '@colony/core';
+import { ColonyRole, Id } from '@colony/core';
 
 import { logger, detectOperation, tryFetchGraphqlQuery } from '~helpers';
-import { MutationOperations } from '~types';
-import { getColonyAction, getColonyRole, getColonyTokens } from '~queries';
+import { MutationOperations, UserRole } from '~types';
+import {
+  getAllColonyRoles,
+  getColonyAction,
+  getColonyRole,
+  getColonyTokens,
+  getStreamingPayment,
+} from '~queries';
 
 const hasMutationPermissions = async (
   operationName: string,
@@ -159,6 +165,39 @@ const hasMutationPermissions = async (
       case MutationOperations.CreateStreamingPaymentMetadata:
       case MutationOperations.CreateAnnotation: {
         return true;
+      }
+      case MutationOperations.UpdateStreamingPaymentMetadata: {
+        const {
+          input: { id: streamingPaymentId },
+        } = JSON.parse(variables);
+        try {
+          // We need to check if the user has permissions in the domain the streaming payment was created in or the root domain
+          const { nativeDomainId } = await tryFetchGraphqlQuery(
+            getStreamingPayment,
+            {
+              streamingPaymentId,
+            },
+          );
+          const [colonyAddress] = streamingPaymentId.split('_');
+
+          const { items: userRoles }: { items: UserRole[] } =
+            await tryFetchGraphqlQuery(getAllColonyRoles, {
+              targetAddress: userAddress,
+              colonyAddress,
+            });
+
+          return userRoles.some((item) => {
+            const [, roleDomainId] = item.id.split('_');
+            const matchesDomain =
+              roleDomainId === String(nativeDomainId) ||
+              roleDomainId === String(Id.RootDomain);
+            const hasRole = !!item[`role_${ColonyRole.Administration}`];
+            return matchesDomain && hasRole;
+          });
+        } catch (error) {
+          // silent
+          return false;
+        }
       }
       /**
        * Metadata can be created as part of the motion process, so we need to allow
