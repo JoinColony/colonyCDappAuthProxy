@@ -1,57 +1,61 @@
-import { RequestHandler } from 'http-proxy-middleware';
+import { RequestHandler } from "http-proxy-middleware";
 
 export enum OperationTypes {
-  Query = 'query',
-  Mutation = 'mutation',
+  Query = "query",
+  Mutation = "mutation",
 }
 
 export enum DefinitionTypes {
-  Operation = 'OperationDefinition',
-  Fragment = 'FragmentDefinition',
+  Operation = "OperationDefinition",
+  Fragment = "FragmentDefinition",
 }
 
 export enum MutationOperations {
   /*
    * User
    */
-  CreateUniqueUser = 'createUniqueUser',
-  UpdateUserProfile = 'updateProfile',
-  CreateTransaction = 'createTransaction',
-  UpdateTransaction = 'updateTransaction',
-  CreateUserTokens = 'createUserTokens',
+  CreateUniqueUser = "createUniqueUser",
+  UpdateUserProfile = "updateProfile",
+  CreateTransaction = "createTransaction",
+  UpdateTransaction = "updateTransaction",
+  CreateUserTokens = "createUserTokens",
   /*
    * Colony
    */
-  CreateColonyMetadata = 'createColonyMetadata',
-  UpdateColonyMetadata = 'updateColonyMetadata',
-  ValidateUserInvite = 'validateUserInvite',
-  CreateColonyContributor = 'createColonyContributor',
-  UpdateColonyContributor = 'updateColonyContributor',
-  UpdateContributorsWithReputation = 'updateContributorsWithReputation',
-  CreateColonyEtherealMetadata = 'createColonyEtherealMetadata',
+  CreateColonyMetadata = "createColonyMetadata",
+  UpdateColonyMetadata = "updateColonyMetadata",
+  ValidateUserInvite = "validateUserInvite",
+  CreateColonyContributor = "createColonyContributor",
+  UpdateColonyContributor = "updateColonyContributor",
+  UpdateContributorsWithReputation = "updateContributorsWithReputation",
+  CreateColonyEtherealMetadata = "createColonyEtherealMetadata",
   /*
    * Domains
    */
-  CreateDomain = 'createDomain',
-  CreateDomainMetadata = 'createDomainMetadata',
-  UpdateDomainMetadata = 'updateDomainMetadata',
+  CreateDomain = "createDomain",
+  CreateDomainMetadata = "createDomainMetadata",
+  UpdateDomainMetadata = "updateDomainMetadata",
   /*
    * Actions, Mutations
    */
-  CreateColonyActionMetadata = 'createColonyActionMetadata',
-  CreateAnnotation = 'createAnnotation',
-  CreateColonyDecision = 'createColonyDecision',
+  CreateColonyActionMetadata = "createColonyActionMetadata",
+  CreateAnnotation = "createAnnotation",
+  CreateColonyDecision = "createColonyDecision",
   /*
    * Tokens
    */
-  GetTokenFromEverywhere = 'getTokenFromEverywhere',
-  CreateColonyTokens = 'createColonyTokens',
-  DeleteColonyTokens = 'deleteColonyTokens',
+  GetTokenFromEverywhere = "getTokenFromEverywhere",
+  CreateColonyTokens = "createColonyTokens",
+  DeleteColonyTokens = "deleteColonyTokens",
   /*
    * Expenditures
    */
-  CreateExpenditureMetadata = 'createExpenditureMetadata',
-  CreateStreamingPaymentMetadata = 'createStreamingPaymentMetadata',
+  CreateExpenditureMetadata = "createExpenditureMetadata",
+  CreateStreamingPaymentMetadata = "createStreamingPaymentMetadata",
+  /*
+   * BridgeXYZ
+   */
+  BridgeXYZMutation = "bridgeXYZMutation",
 }
 
 export enum HttpStatuses {
@@ -63,11 +67,11 @@ export enum HttpStatuses {
 }
 
 export enum ResponseTypes {
-  Nonce = 'nonce',
-  Health = 'health',
-  Error = 'error',
-  Auth = 'authentication',
-  Status = 'status',
+  Nonce = "nonce",
+  Health = "health",
+  Error = "error",
+  Auth = "authentication",
+  Status = "status",
 }
 
 export type Response = {
@@ -77,29 +81,29 @@ export type Response = {
 };
 
 export enum Urls {
-  GraphQL = '/graphql',
-  Health = '/health',
-  Nonce = '/nonce',
-  Auth = '/auth',
-  DeAuth = '/deauth',
-  Check = '/check',
+  GraphQL = "/graphql",
+  Health = "/health",
+  Nonce = "/nonce",
+  Auth = "/auth",
+  DeAuth = "/deauth",
+  Check = "/check",
 }
 
 export enum ContentTypes {
-  Json = 'application/json',
-  Plaintext = 'text/plain',
+  Json = "application/json",
+  Plaintext = "text/plain",
 }
 
 export enum Headers {
-  AllowOrigin = 'Access-Control-Allow-Origin',
-  ContentType = 'Content-Type',
-  Cookie = 'Cookie',
-  SetCookie = 'Set-Cookie',
-  ForwardedFor = 'x-forwarded-for',
-  ForwardedProto = 'x-forwarded-proto',
-  ApiKey = 'x-api-key',
-  PoweredBy = 'X-Powered-By',
-  WalletAddress = 'x-wallet-address',
+  AllowOrigin = "Access-Control-Allow-Origin",
+  ContentType = "Content-Type",
+  Cookie = "Cookie",
+  SetCookie = "Set-Cookie",
+  ForwardedFor = "x-forwarded-for",
+  ForwardedProto = "x-forwarded-proto",
+  ApiKey = "x-api-key",
+  PoweredBy = "X-Powered-By",
+  WalletAddress = "x-wallet-address",
 }
 
 export type StaticOrigin =
@@ -109,13 +113,13 @@ export type StaticOrigin =
   | (boolean | string | RegExp)[];
 export type StaticOriginCallback = (
   err: Error | null,
-  origin?: StaticOrigin | undefined,
+  origin?: StaticOrigin | undefined
 ) => void;
 
 export enum ServerMethods {
-  Post = 'post',
-  Get = 'get',
-  Use = 'use',
+  Post = "post",
+  Get = "get",
+  Use = "use",
 }
 
 export interface RouteHandler {

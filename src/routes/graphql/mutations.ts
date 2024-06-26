@@ -1,16 +1,16 @@
-import { Request } from 'express-serve-static-core';
-import { ColonyRole } from '@colony/core';
+import { Request } from "express-serve-static-core";
+import { ColonyRole } from "@colony/core";
 
-import { logger, detectOperation, tryFetchGraphqlQuery } from '~helpers';
-import { MutationOperations } from '~types';
-import { getColonyAction, getColonyRole, getColonyTokens } from '~queries';
+import { logger, detectOperation, tryFetchGraphqlQuery } from "~helpers";
+import { MutationOperations } from "~types";
+import { getColonyAction, getColonyRole, getColonyTokens } from "~queries";
 
 const hasMutationPermissions = async (
   operationName: string,
-  request: Request,
+  request: Request
 ): Promise<boolean> => {
-  const userAddress = request.session.auth?.address || '';
-  const { variables = '{}' } = detectOperation(request.body);
+  const userAddress = request.session.auth?.address || "";
+  const { variables = "{}" } = detectOperation(request.body);
 
   try {
     switch (operationName) {
@@ -64,7 +64,7 @@ const hasMutationPermissions = async (
         const {
           input: { id: combinedContributorId },
         } = JSON.parse(variables);
-        const [, contributorWalletAddress] = combinedContributorId.split('_');
+        const [, contributorWalletAddress] = combinedContributorId.split("_");
         return (
           contributorWalletAddress?.toLowerCase() === userAddress?.toLowerCase()
         );
@@ -175,6 +175,12 @@ const hasMutationPermissions = async (
       case MutationOperations.UpdateContributorsWithReputation: {
         return true;
       }
+      /*
+       * Bridge XYZ
+       */
+      case MutationOperations.BridgeXYZMutation: {
+        return true;
+      }
       default: {
         return false;
       }
@@ -182,7 +188,7 @@ const hasMutationPermissions = async (
   } catch (error) {
     logger(
       `Error when attempting to check if user ${userAddress} can execute mutation ${operationName} with variables ${variables}`,
-      error,
+      error
     );
     /*
      * If anything fails just prevent the mutation from executing
@@ -192,7 +198,7 @@ const hasMutationPermissions = async (
 };
 
 const addressCanExecuteMutation = async (
-  request: Request,
+  request: Request
 ): Promise<boolean> => {
   try {
     const { operations } = detectOperation(request.body);
@@ -203,8 +209,8 @@ const addressCanExecuteMutation = async (
     const canExecuteAllOperations = await Promise.all(
       operations.map(
         async (operationName) =>
-          await hasMutationPermissions(operationName, request),
-      ),
+          await hasMutationPermissions(operationName, request)
+      )
     );
     return canExecuteAllOperations.every((canExecute) => canExecute);
   } catch (error) {
