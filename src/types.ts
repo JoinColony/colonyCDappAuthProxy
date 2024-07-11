@@ -53,6 +53,10 @@ export enum MutationOperations {
   CreateExpenditureMetadata = 'createExpenditureMetadata',
   CreateStreamingPaymentMetadata = 'createStreamingPaymentMetadata',
   UpdateStreamingPaymentMetadata = 'updateStreamingPaymentMetadata',
+  /*
+   * Bridge / Crypto-to-fiat
+   */
+  BridgeXYZMutation = 'bridgeXYZMutation',
 }
 
 export enum HttpStatuses {

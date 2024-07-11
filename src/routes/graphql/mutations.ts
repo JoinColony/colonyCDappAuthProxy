@@ -214,6 +214,12 @@ const hasMutationPermissions = async (
       case MutationOperations.UpdateContributorsWithReputation: {
         return true;
       }
+      /*
+       * Bridge XYZ mutation, always allow
+       */
+      case MutationOperations.BridgeXYZMutation: {
+        return true;
+      }
       default: {
         return false;
       }
