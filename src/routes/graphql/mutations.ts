@@ -163,6 +163,7 @@ const hasMutationPermissions = async (
        */
       case MutationOperations.CreateExpenditureMetadata:
       case MutationOperations.CreateStreamingPaymentMetadata:
+      case MutationOperations.CreatePendingStreamingPaymentMetadata:
       case MutationOperations.CreateAnnotation: {
         return true;
       }

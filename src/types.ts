@@ -53,6 +53,7 @@ export enum MutationOperations {
   CreateExpenditureMetadata = 'createExpenditureMetadata',
   CreateStreamingPaymentMetadata = 'createStreamingPaymentMetadata',
   UpdateStreamingPaymentMetadata = 'updateStreamingPaymentMetadata',
+  CreatePendingStreamingPaymentMetadata = 'createPendingStreamingPaymentMetadata',
 }
 
 export enum HttpStatuses {
