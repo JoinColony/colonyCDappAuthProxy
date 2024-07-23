@@ -55,3 +55,11 @@ export const getStreamingPayment = /* GraphQL */ `
     }
   }
 `;
+
+export const getTransaction = /* GraphQL */ `
+  query GetTransaction($transactionId: ID!) {
+    getTransaction(id: $transactionId) {
+      from
+    }
+  }
+`;
