@@ -1,7 +1,7 @@
-import dotenv from "dotenv";
-import { fixRequestBody, Options, RequestHandler } from "http-proxy-middleware";
-import { Response, Request, NextFunction } from "express-serve-static-core";
-import { ClientRequest, IncomingMessage } from "http";
+import dotenv from 'dotenv';
+import { fixRequestBody, Options, RequestHandler } from 'http-proxy-middleware';
+import { Response, Request, NextFunction } from 'express-serve-static-core';
+import { ClientRequest, IncomingMessage } from 'http';
 
 import {
   getStaticOrigin,
@@ -9,7 +9,7 @@ import {
   getRemoteIpAddress,
   logger,
   detectOperation,
-} from "~helpers";
+} from '~helpers';
 import {
   ResponseTypes,
   HttpStatuses,
@@ -18,16 +18,16 @@ import {
   OperationTypes,
   Urls,
   ServerMethods,
-} from "~types";
+} from '~types';
 
-import addressCanExecuteMutation from "./mutations";
+import addressCanExecuteMutation from './mutations';
 
 dotenv.config();
 
 export const operationExecutionHandler: RequestHandler = async (
   request: Request,
   response: Response,
-  nextFn: NextFunction
+  nextFn: NextFunction,
 ) => {
   // short circut early
   if (
@@ -37,7 +37,7 @@ export const operationExecutionHandler: RequestHandler = async (
     return nextFn();
   }
 
-  const userAddress = request.session.auth?.address || "";
+  const userAddress = request.session.auth?.address || '';
   const requestRemoteAddress = getRemoteIpAddress(request);
 
   try {
@@ -46,10 +46,10 @@ export const operationExecutionHandler: RequestHandler = async (
   } catch (error: any) {
     logger(
       `${
-        userAddress ? `auth-${userAddress}` : "non-auth"
+        userAddress ? `auth-${userAddress}` : 'non-auth'
       } request malformed graphql ${
-        request.body ? JSON.stringify(request.body) : ""
-      } from ${requestRemoteAddress}`
+        request.body ? JSON.stringify(request.body) : ''
+      } from ${requestRemoteAddress}`,
     );
     return sendResponse(response, request, error, HttpStatuses.SERVER_ERROR);
   }
@@ -59,17 +59,17 @@ export const graphQlProxyRouteHandler: Options = {
   target: process.env.APPSYNC_API,
   changeOrigin: true,
   headers: {
-    [Headers.ApiKey]: process.env.APPSYNC_API_KEY || "",
+    [Headers.ApiKey]: process.env.APPSYNC_API_KEY || '',
     [Headers.ContentType]: ContentTypes.Json,
   },
-  pathRewrite: { "^/graphql": "" },
+  pathRewrite: { '^/graphql': '' },
   onProxyReq: (
     proxyRequest: ClientRequest,
     request: Request,
-    response: Response
+    response: Response,
   ) => {
     const userAuthenticated = !!request.session.auth;
-    const userAddress = request.session.auth?.address || "";
+    const userAddress = request.session.auth?.address || '';
     const requestRemoteAddress = getRemoteIpAddress(request);
     try {
       if (request?.body?.query) {
@@ -77,7 +77,7 @@ export const graphQlProxyRouteHandler: Options = {
          * Used for UI only, the real magic with detection happens in operationExecutionHandler
          */
         const { operationType, operations, variables } = detectOperation(
-          request.body
+          request.body,
         );
 
         /*
@@ -90,21 +90,21 @@ export const graphQlProxyRouteHandler: Options = {
 
         logger(
           `${
-            userAuthenticated ? `auth` : "non-auth"
+            userAuthenticated ? `auth` : 'non-auth'
           } ${operationType} ${operations} ${JSON.stringify(variables).slice(
             0,
-            500
+            500,
           )}${
             JSON.stringify(variables).length > 499
               ? ` [+${JSON.stringify(variables).length - 499} chars more]`
-              : ""
+              : ''
           }${
-            userAddress ? ` from ${userAddress}` : ""
+            userAddress ? ` from ${userAddress}` : ''
           } at ${requestRemoteAddress} was ${
             canExecute
-              ? "\x1b[32m ALLOWED \x1b[0m"
-              : "\x1b[31m FORBIDDEN \x1b[0m"
-          }`
+              ? '\x1b[32m ALLOWED \x1b[0m'
+              : '\x1b[31m FORBIDDEN \x1b[0m'
+          }`,
         );
 
         // allowed
@@ -118,11 +118,11 @@ export const graphQlProxyRouteHandler: Options = {
           response,
           request,
           {
-            message: "forbidden",
+            message: 'forbidden',
             type: ResponseTypes.Auth,
-            data: "",
+            data: '',
           },
-          HttpStatuses.FORBIDDEN
+          HttpStatuses.FORBIDDEN,
         );
       }
 
@@ -130,51 +130,51 @@ export const graphQlProxyRouteHandler: Options = {
        * Malformed request
        */
       logger(
-        `${userAuthenticated ? `auth` : "non-auth"} request malformed graphql ${
-          request.body ? JSON.stringify(request.body) : ""
+        `${userAuthenticated ? `auth` : 'non-auth'} request malformed graphql ${
+          request.body ? JSON.stringify(request.body) : ''
         }${
-          userAddress ? ` from ${userAddress}` : ""
-        } at ${requestRemoteAddress}`
+          userAddress ? ` from ${userAddress}` : ''
+        } at ${requestRemoteAddress}`,
       );
       return sendResponse(
         response,
         request,
         {
-          message: "malformed graphql request",
+          message: 'malformed graphql request',
           type: ResponseTypes.Error,
-          data: "",
+          data: '',
         },
-        HttpStatuses.SERVER_ERROR
+        HttpStatuses.SERVER_ERROR,
       );
     } catch (error: any) {
       /*
        * GraphQL error (comes from the AppSync endopoint)
        */
       logger(
-        `${userAuthenticated ? `auth` : "non-auth"} graphql proxy error ${
+        `${userAuthenticated ? `auth` : 'non-auth'} graphql proxy error ${
           error?.message
-        } ${request.body ? JSON.stringify(request.body) : ""}${
-          userAddress ? ` from ${userAddress}` : ""
-        } at ${requestRemoteAddress}`
+        } ${request.body ? JSON.stringify(request.body) : ''}${
+          userAddress ? ` from ${userAddress}` : ''
+        } at ${requestRemoteAddress}`,
       );
       return sendResponse(
         response,
         request,
         {
-          message: "graphql error",
+          message: 'graphql error',
           type: ResponseTypes.Error,
-          data: error?.message || "",
+          data: error?.message || '',
         },
-        HttpStatuses.SERVER_ERROR
+        HttpStatuses.SERVER_ERROR,
       );
     }
   },
   // selfHandleResponse: true,
   onProxyRes: (proxyResponse: IncomingMessage, request: Request) => {
     proxyResponse.headers[Headers.AllowOrigin] = getStaticOrigin(
-      request.headers.origin
+      request.headers.origin,
     );
-    proxyResponse.headers[Headers.PoweredBy] = "Colony";
+    proxyResponse.headers[Headers.PoweredBy] = 'Colony';
   },
   logProvider: () => ({
     log: logger,
