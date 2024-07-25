@@ -101,7 +101,9 @@ export const graphQlProxyRouteHandler: Options = {
           }${
             userAddress ? ` from ${userAddress}` : ''
           } at ${requestRemoteAddress} was ${
-            canExecute ? 'ALLOWED' : 'FORBIDDEN'
+            canExecute
+              ? '\x1b[32m ALLOWED \x1b[0m'
+              : '\x1b[31m FORBIDDEN \x1b[0m'
           }`,
         );
 

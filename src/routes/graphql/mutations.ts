@@ -9,6 +9,7 @@ import {
   getColonyRole,
   getColonyTokens,
   getStreamingPayment,
+  getTransaction,
 } from '~queries';
 
 const hasMutationPermissions = async (
@@ -30,12 +31,31 @@ const hasMutationPermissions = async (
         } = JSON.parse(variables);
         return id?.toLowerCase() === userAddress?.toLowerCase();
       }
-      case MutationOperations.CreateTransaction:
-      case MutationOperations.UpdateTransaction: {
+      case MutationOperations.CreateTransaction: {
         const {
           input: { from },
         } = JSON.parse(variables);
         return from?.toLowerCase() === userAddress?.toLowerCase();
+      }
+      case MutationOperations.UpdateTransaction: {
+        const {
+          input: { id, from },
+        } = JSON.parse(variables);
+
+        try {
+          const data = await tryFetchGraphqlQuery(getTransaction, {
+            transactionId: id,
+          });
+
+          // A user should only be allowed to update transactions made by them.
+          return (
+            from?.toLowerCase() === userAddress?.toLowerCase() && // The logged in user is the same as the "from" in the mutation
+            data?.from?.toLowerCase() === userAddress?.toLowerCase() // The logged in user is the same as the "from" in the fetched transaction
+          );
+        } catch (error) {
+          // silent
+          return false;
+        }
       }
       case MutationOperations.CreateUserTokens: {
         const {
