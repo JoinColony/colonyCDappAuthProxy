@@ -163,13 +163,16 @@ export const tryFetchGraphqlQuery = async (
 ) => {
   let currentTry = 0;
   while (true) {
-    const { data } = await graphqlRequest(queryOrMutation, variables);
+    const result = await graphqlRequest(queryOrMutation, variables);
 
     /*
      * @NOTE That this limits to only fetching one operation at a time
      */
-    if (data[Object.keys(data)[0]]) {
-      return data[Object.keys(data)[0]];
+    if (result) {
+      const { data } = result;
+      if (data[Object.keys(data)[0]]) {
+        return data[Object.keys(data)[0]];
+      }
     }
 
     if (currentTry < maxRetries) {
