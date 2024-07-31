@@ -168,7 +168,7 @@ export const tryFetchGraphqlQuery = async (
     /*
      * @NOTE That this limits to only fetching one operation at a time
      */
-    if (result) {
+    if (result?.data) {
       const { data } = result;
       if (data[Object.keys(data)[0]]) {
         return data[Object.keys(data)[0]];
