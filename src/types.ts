@@ -19,6 +19,7 @@ export enum MutationOperations {
   CreateTransaction = 'createTransaction',
   UpdateTransaction = 'updateTransaction',
   CreateUserTokens = 'createUserTokens',
+  InitializeUser = 'initializeUser',
   /*
    * Colony
    */
