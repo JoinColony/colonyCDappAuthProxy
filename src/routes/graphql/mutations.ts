@@ -31,6 +31,10 @@ const hasMutationPermissions = async (
         } = JSON.parse(variables);
         return userAddress && id && id.toLowerCase() === userAddress.toLowerCase();
       }
+      case MutationOperations.InitializeUser: {
+        // This is always allowed as the actual check is happening in the lambda
+        return true;
+      }
       case MutationOperations.CreateTransaction: {
         const {
           input: { from },
