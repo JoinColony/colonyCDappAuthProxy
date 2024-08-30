@@ -31,9 +31,6 @@ const hasMutationPermissions = async (
           input: { id },
         } = JSON.parse(variables);
 
-        console.log('HERE', id?.toLowerCase());
-        console.log('HERE', userAddress?.toLowerCase());
-
         return id?.toLowerCase() === userAddress?.toLowerCase();
       }
       case MutationOperations.CreateTransaction: {
