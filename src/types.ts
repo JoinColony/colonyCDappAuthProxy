@@ -19,6 +19,7 @@ export enum MutationOperations {
   CreateTransaction = 'createTransaction',
   UpdateTransaction = 'updateTransaction',
   CreateUserTokens = 'createUserTokens',
+  CreateUserNotificationsData = 'createUserNotificationsData',
   /*
    * Colony
    */
@@ -116,7 +117,7 @@ export type StaticOrigin =
   | (boolean | string | RegExp)[];
 export type StaticOriginCallback = (
   err: Error | null,
-  origin?: StaticOrigin | undefined,
+  origin?: StaticOrigin | undefined
 ) => void;
 
 export enum ServerMethods {
