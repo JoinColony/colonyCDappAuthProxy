@@ -25,7 +25,8 @@ const hasMutationPermissions = async (
        * Users
        */
       case MutationOperations.CreateUniqueUser:
-      case MutationOperations.UpdateUserProfile: {
+      case MutationOperations.UpdateUserProfile:
+      case MutationOperations.CreateUserNotificationsData: {
         const {
           input: { id },
         } = JSON.parse(variables);
