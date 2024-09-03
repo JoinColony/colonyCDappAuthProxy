@@ -32,6 +32,13 @@ const hasMutationPermissions = async (
         } = JSON.parse(variables);
         return id?.toLowerCase() === userAddress?.toLowerCase();
       }
+      case MutationOperations.UpdateUserNotificationsData: {
+        const { userAddress: mutationUserAddress } = JSON.parse(variables);
+
+        return (
+          userAddress?.toLowerCase() === mutationUserAddress?.toLowerCase()
+        );
+      }
       case MutationOperations.CreateTransaction: {
         const {
           input: { from },

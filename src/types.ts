@@ -16,6 +16,7 @@ export enum MutationOperations {
    */
   CreateUniqueUser = 'createUniqueUser',
   UpdateUserProfile = 'updateProfile',
+  UpdateUserNotificationsData = 'updateNotificationsData',
   CreateTransaction = 'createTransaction',
   UpdateTransaction = 'updateTransaction',
   CreateUserTokens = 'createUserTokens',
