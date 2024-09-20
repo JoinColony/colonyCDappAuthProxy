@@ -25,7 +25,8 @@ const hasMutationPermissions = async (
        * Users
        */
       case MutationOperations.CreateUniqueUser:
-      case MutationOperations.UpdateUserProfile: {
+      case MutationOperations.UpdateUserProfile:
+      case MutationOperations.CreateUserNotificationsData: {
         const {
           input: { id },
         } = JSON.parse(variables);
@@ -34,6 +35,13 @@ const hasMutationPermissions = async (
       case MutationOperations.InitializeUser: {
         // This is always allowed as the actual check is happening in the lambda
         return true;
+      }
+      case MutationOperations.UpdateUserNotificationsData: {
+        const { userAddress: mutationUserAddress } = JSON.parse(variables);
+
+        return (
+          userAddress?.toLowerCase() === mutationUserAddress?.toLowerCase()
+        );
       }
       case MutationOperations.CreateTransaction: {
         const {
