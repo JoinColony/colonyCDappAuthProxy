@@ -37,7 +37,9 @@ const hasMutationPermissions = async (
         return true;
       }
       case MutationOperations.UpdateUserNotificationsData: {
-        const { userAddress: mutationUserAddress } = JSON.parse(variables);
+        const {
+          input: { userAddress: mutationUserAddress },
+        } = JSON.parse(variables);
 
         return (
           userAddress?.toLowerCase() === mutationUserAddress?.toLowerCase()
