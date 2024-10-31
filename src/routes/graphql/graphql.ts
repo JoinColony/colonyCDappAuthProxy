@@ -21,6 +21,7 @@ import {
 } from '~types';
 
 import addressCanExecuteMutation from './mutations';
+import addressCanExecuteQuery from './queries';
 
 dotenv.config();
 
@@ -41,7 +42,10 @@ export const operationExecutionHandler: RequestHandler = async (
   const requestRemoteAddress = getRemoteIpAddress(request);
 
   try {
-    response.locals.canExecute = await addressCanExecuteMutation(request);
+    response.locals.canExecuteMutation = await addressCanExecuteMutation(
+      request,
+    );
+    response.locals.canExecuteQuery = await addressCanExecuteQuery(request);
     return nextFn();
   } catch (error: any) {
     logger(
@@ -81,12 +85,23 @@ export const graphQlProxyRouteHandler: Options = {
         );
 
         /*
-         * Queries are all allowed, while mutations need to be handled on a case by case basis
+         * Mutations need to be handled on a case by case basis
          * Some are allowed without auth (cache refresh ones)
          * Others based on if the user has the appropriate address and/or role
          */
-        const canExecute =
-          response.locals.canExecute || operationType === OperationTypes.Query;
+        const canExecuteMutation =
+          operationType === OperationTypes.Mutation &&
+          response.locals.canExecuteMutation;
+
+        /*
+         * By default, all queries are allowed
+         * However, some will not execute correctly if a user address is not provided
+         */
+        const canExecuteQuery =
+          operationType === OperationTypes.Query &&
+          response.locals.canExecuteQuery;
+
+        const canExecute = canExecuteMutation || canExecuteQuery;
 
         logger(
           `${
