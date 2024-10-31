@@ -23,7 +23,7 @@ import {
   Headers,
   OperationTypes,
   Urls,
-  ServerMethods,
+  RequestMethods,
 } from '~types';
 
 import addressCanExecuteMutation from './mutations';
@@ -39,7 +39,7 @@ export const operationExecutionHandler: RequestHandler = async (
   // short circut early
   if (
     request.path !== Urls.GraphQL ||
-    request.method !== ServerMethods.Post.toUpperCase()
+    request.method !== RequestMethods.Post
   ) {
     return nextFn();
   }
