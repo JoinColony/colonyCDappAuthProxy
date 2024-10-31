@@ -64,6 +64,10 @@ export enum MutationOperations {
   BridgeUpdateBankAccount = 'bridgeUpdateBankAccount',
 }
 
+export enum QueryOperations {
+  GetUserByAddress = 'getUserByAddress',
+}
+
 export enum HttpStatuses {
   OK = 200,
   BAD_REQUEST = 400,

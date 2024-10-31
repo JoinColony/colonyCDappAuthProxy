@@ -27,6 +27,7 @@ import {
 } from '~types';
 
 import addressCanExecuteMutation from './mutations';
+import addressCanExecuteQuery from './queries';
 
 dotenv.config();
 
@@ -47,7 +48,10 @@ export const operationExecutionHandler: RequestHandler = async (
   const requestRemoteAddress = getRemoteIpAddress(request);
 
   try {
-    response.locals.canExecute = await addressCanExecuteMutation(request);
+    const canExecuteMutation = await addressCanExecuteMutation(request);
+    const canExecuteQuery = await addressCanExecuteQuery(request);
+
+    response.locals.canExecute = canExecuteMutation || canExecuteQuery;
     response.locals.requestSanitation = {};
     response.locals.aliases = {};
 
@@ -56,140 +60,140 @@ export const operationExecutionHandler: RequestHandler = async (
     // request.body.query = request.body.query.replace('email', '');
     // console.log(request.body.query);
     // console.log(parse(request.body.query));
-    const edited = visit(parse(request.body.query), {
-      enter(node, key, parent, path, acestors) {
-        console.log(node.kind);
-        // @ts-ignore
-        console.log(node.name);
-        // console.log('enter');
-        // console.log('enter', node);
-        // console.log(node.kind);
-        // @ts-ignore
-        // console.log(node.name);
-        // @ts-ignore
-        // console.log(node.value);'
-        /**
-         * getUser: { abc: { aliased: email }}
-         *
-         */
-        /**
-         * requestSanitation: {
-         *   'getUser.abc.aliased': 'email'
-         * }
-         *
-         * INSIDE RESPONSE:
-         * Fields to delete per type: {
-         *   'Profile': [{
-         *    field: 'email',
-         *    condition: (value) => value !== userAddress
-         *  }]
-         * }
-         *
-         * ['getUser', 'abc', 'aliased']
-         * const aliasOrRealName = requestSanitation[['getUser', 'abc', 'aliased'].join('.)] ?? jsonKey;
-         *
-         *
-         * rules[Profile] - do they have aliasOrRealName inside? If they do, delete that field
-         */
-        // @ts-ignore
-        if (node.alias) {
-          // if (node.kind === 'Field') {
-          //   let key = '';
-          //   if (node?.name?.value === 'email') {
-          //     key = 'email';
-          //   }
-          //   if (node?.name?.value === 'profile') {
-          //     key = 'profile';
-          //   }
-          //   response.locals.requestSanitation = {
-          //     ...response.locals.requestSanitation,
-          //     [key]: {
-          //       name: node.name.value,
-          //       // @ts-ignore
-          //       alias: node.alias.value,
-          //       path: [...acestors as Array<any>].filter(name => name?.kind === 'Field').map((entry: any) => {
-          //         return entry?.alias?.value || entry?.name?.value || 'unknown';
-          //       }),
-          //     },
-          //   };
-          // }
-          const path = [...acestors as Array<any>].filter(name => name?.kind === 'Field').map((entry: any) => {
-            return entry?.alias?.value || entry?.name?.value || 'unknown';
-          });
-          response.locals.requestSanitation = {
-            ...response.locals.requestSanitation,
-            // @ts-ignore
-            [node.name.value]: [...path, node.alias.value].join('.'),
-          };
+    // const edited = visit(parse(request.body.query), {
+    //   enter(node, key, parent, path, acestors) {
+    //     console.log(node.kind);
+    //     // @ts-ignore
+    //     console.log(node.name);
+    //     // console.log('enter');
+    //     // console.log('enter', node);
+    //     // console.log(node.kind);
+    //     // @ts-ignore
+    //     // console.log(node.name);
+    //     // @ts-ignore
+    //     // console.log(node.value);'
+    //     /**
+    //      * getUser: { abc: { aliased: email }}
+    //      *
+    //      */
+    //     /**
+    //      * requestSanitation: {
+    //      *   'getUser.abc.aliased': 'email'
+    //      * }
+    //      *
+    //      * INSIDE RESPONSE:
+    //      * Fields to delete per type: {
+    //      *   'Profile': [{
+    //      *    field: 'email',
+    //      *    condition: (value) => value !== userAddress
+    //      *  }]
+    //      * }
+    //      *
+    //      * ['getUser', 'abc', 'aliased']
+    //      * const aliasOrRealName = requestSanitation[['getUser', 'abc', 'aliased'].join('.)] ?? jsonKey;
+    //      *
+    //      *
+    //      * rules[Profile] - do they have aliasOrRealName inside? If they do, delete that field
+    //      */
+    //     // @ts-ignore
+    //     if (node.alias) {
+    //       // if (node.kind === 'Field') {
+    //       //   let key = '';
+    //       //   if (node?.name?.value === 'email') {
+    //       //     key = 'email';
+    //       //   }
+    //       //   if (node?.name?.value === 'profile') {
+    //       //     key = 'profile';
+    //       //   }
+    //       //   response.locals.requestSanitation = {
+    //       //     ...response.locals.requestSanitation,
+    //       //     [key]: {
+    //       //       name: node.name.value,
+    //       //       // @ts-ignore
+    //       //       alias: node.alias.value,
+    //       //       path: [...acestors as Array<any>].filter(name => name?.kind === 'Field').map((entry: any) => {
+    //       //         return entry?.alias?.value || entry?.name?.value || 'unknown';
+    //       //       }),
+    //       //     },
+    //       //   };
+    //       // }
+    //       const path = [...acestors as Array<any>].filter(name => name?.kind === 'Field').map((entry: any) => {
+    //         return entry?.alias?.value || entry?.name?.value || 'unknown';
+    //       });
+    //       response.locals.requestSanitation = {
+    //         ...response.locals.requestSanitation,
+    //         // @ts-ignore
+    //         [node.name.value]: [...path, node.alias.value].join('.'),
+    //       };
 
-          // @ts-ignore
-          const aliasPath = [...path, node.alias.value ?? node.name.value].join('.');
-          response.locals.aliases = {
-            ...response.locals.aliases,
-            // @ts-ignore
-            [aliasPath]: node.name.value,
-          }
-        }
-        // if (node.kind === 'Field' && node?.name?.value === 'email') {
-        //   response.locals.requestSanitation = {
-        //     ...response.locals.requestSanitation,
-        //     email: {
-        //       name: node.name.value,
-        //       // @ts-ignore
-        //       alias: node.alias.value,
-        //       // path:
-        //     },
-        //   };
-        // }
-        // if (node.kind === 'Field' && node.name.value === 'profile') {
-        //   response.locals.requestSanitation = {
-        //     ...response.locals.requestSanitation,
-        //     profile: {
-        //       name: node.name.value,
-        //       // @ts-ignore
-        //       alias: node.alias.value,
-        //       // path:
-        //     },
-        //   };
-        // }
-        if (node.kind === 'SelectionSet') {
-          // console.log(node);
-          return {
-            ...node,
-            selections: [
-              ...node.selections,
-              {
-                kind: 'Field',
-                name: {
-                  kind: 'Name',
-                  value: '__typename'
-                }
-              }
-            ]
-          };
-        }
-        // @ts-ignore
-        // if (node.alias) {
-        //   // @ts-ignore
-        //   console.log(node?.alias?.value, node?.name?.value);
-        //   // console.log({ key, path, parent, acestors });
-          // console.log([...acestors as Array<any>].filter(name => name?.kind === 'Field').map((entry: any) => {
-          //   return entry?.alias?.value || entry?.name?.value || 'unknown';
-          // }));
-        // }
-      },
-      // leave(node) {
-      //   console.log('leave');
-      //   // console.log('leave', node);
-      //   // console.log(node.kind);
-      //   // @ts-ignore
-      //   console.log(node.name);
-      //   // @ts-ignore
-      //   console.log(node.value);
-      // }
-    });
-    // console.log(print(edited));
-    request.body.query = print(edited);
+    //       // @ts-ignore
+    //       const aliasPath = [...path, node.alias.value ?? node.name.value].join('.');
+    //       response.locals.aliases = {
+    //         ...response.locals.aliases,
+    //         // @ts-ignore
+    //         [aliasPath]: node.name.value,
+    //       }
+    //     }
+    //     // if (node.kind === 'Field' && node?.name?.value === 'email') {
+    //     //   response.locals.requestSanitation = {
+    //     //     ...response.locals.requestSanitation,
+    //     //     email: {
+    //     //       name: node.name.value,
+    //     //       // @ts-ignore
+    //     //       alias: node.alias.value,
+    //     //       // path:
+    //     //     },
+    //     //   };
+    //     // }
+    //     // if (node.kind === 'Field' && node.name.value === 'profile') {
+    //     //   response.locals.requestSanitation = {
+    //     //     ...response.locals.requestSanitation,
+    //     //     profile: {
+    //     //       name: node.name.value,
+    //     //       // @ts-ignore
+    //     //       alias: node.alias.value,
+    //     //       // path:
+    //     //     },
+    //     //   };
+    //     // }
+    //     if (node.kind === 'SelectionSet') {
+    //       // console.log(node);
+    //       return {
+    //         ...node,
+    //         selections: [
+    //           ...node.selections,
+    //           {
+    //             kind: 'Field',
+    //             name: {
+    //               kind: 'Name',
+    //               value: '__typename'
+    //             }
+    //           }
+    //         ]
+    //       };
+    //     }
+    //     // @ts-ignore
+    //     // if (node.alias) {
+    //     //   // @ts-ignore
+    //     //   console.log(node?.alias?.value, node?.name?.value);
+    //     //   // console.log({ key, path, parent, acestors });
+    //       // console.log([...acestors as Array<any>].filter(name => name?.kind === 'Field').map((entry: any) => {
+    //       //   return entry?.alias?.value || entry?.name?.value || 'unknown';
+    //       // }));
+    //     // }
+    //   },
+    //   // leave(node) {
+    //   //   console.log('leave');
+    //   //   // console.log('leave', node);
+    //   //   // console.log(node.kind);
+    //   //   // @ts-ignore
+    //   //   console.log(node.name);
+    //   //   // @ts-ignore
+    //   //   console.log(node.value);
+    //   // }
+    // });
+    // // console.log(print(edited));
+    // request.body.query = print(edited);
 
     // console.log(JSON.stringify(request.body, null, 2));
 
@@ -232,12 +236,11 @@ export const graphQlProxyRouteHandler: Options = {
         );
 
         /*
-         * Queries are all allowed, while mutations need to be handled on a case by case basis
+         * Queries are (mostly, some are restricted) all allowed, while mutations need to be handled on a case by case basis
          * Some are allowed without auth (cache refresh ones)
          * Others based on if the user has the appropriate address and/or role
          */
-        const canExecute =
-          response.locals.canExecute || operationType === OperationTypes.Query;
+        const canExecute = response.locals.canExecute;
 
         logger(
           `${
@@ -330,165 +333,165 @@ export const graphQlProxyRouteHandler: Options = {
     console.log('aliases', response.locals.aliases);
 
     proxyResponse.headers[Headers.PoweredBy] = 'Colony';
-    modifyResponse(response, proxyResponse, (body: Record<string, any>) => {
-      try {
-        if (body) {
-          // Don't return the API key to the client
-          // so that it doesn't get exposed
-          // delete body.integrations['Segment.io'].apiKey;
-          // console.log({body: JSON.stringify(body, null, 2)});
-          // delete body.getUser.abc.
-          const modifiedBody = { ...body };
-          // console.log(modifiedBody);
-          const callbacks = {
-            processValue: (key: any, value: any, level: any, path: any, isObjectRoot: any, isArrayElement: any, cbSetValue: any) => {
-              // console.log({ key, value, isObjectRoot, level, path });
-              // ['data', 'getUser', 'profile', 'metadata', '__typename']
-              // { data: { getUser: { profile }}}
+//     modifyResponse(response, proxyResponse, (body: Record<string, any>) => {
+//       try {
+//         if (body) {
+//           // Don't return the API key to the client
+//           // so that it doesn't get exposed
+//           // delete body.integrations['Segment.io'].apiKey;
+//           // console.log({body: JSON.stringify(body, null, 2)});
+//           // delete body.getUser.abc.
+//           const modifiedBody = { ...body };
+//           // console.log(modifiedBody);
+//           const callbacks = {
+//             processValue: (key: any, value: any, level: any, path: any, isObjectRoot: any, isArrayElement: any, cbSetValue: any) => {
+//               // console.log({ key, value, isObjectRoot, level, path });
+//               // ['data', 'getUser', 'profile', 'metadata', '__typename']
+//               // { data: { getUser: { profile }}}
 
-              console.log({key})
+//               console.log({key})
 
-              const config =  {
-                 'Profile': [{
-                  field: 'email',
-                  deleteIf: (value: any) => !value?.id || value?.id !== request.session.auth?.address
-                 }]
-               }
+//               const config =  {
+//                  'Profile': [{
+//                   field: 'email',
+//                   deleteIf: (value: any) => !value?.id || value?.id !== request.session.auth?.address
+//                  }]
+//                }
 
-              // const realFieldName = response.locals.requestSanitation[path] ?? key;
-              // const parentTypename = <<PARENT>>.__typename;
+//               // const realFieldName = response.locals.requestSanitation[path] ?? key;
+//               // const parentTypename = <<PARENT>>.__typename;
 
-              // const matchingRule = config[parentTypename];
-              // if(matchingRule && matchingRule.includes(realFieldName)) {
-              //   delete <<PARENT>>[key]
-              // }
+//               // const matchingRule = config[parentTypename];
+//               // if(matchingRule && matchingRule.includes(realFieldName)) {
+//               //   delete <<PARENT>>[key]
+//               // }
 
-              // console.log({ })
-              /**
-               * profile1: profile {
-               *  alias1: email
-               * }
-               *
-               * profile2: profile {
-               *  alias2: email
-               * }
-               */
+//               // console.log({ })
+//               /**
+//                * profile1: profile {
+//                *  alias1: email
+//                * }
+//                *
+//                * profile2: profile {
+//                *  alias2: email
+//                * }
+//                */
 
-              try {
-// @ts-ignore
-const matchingConfig = config[value?.__typename];
+//               try {
+// // @ts-ignore
+// const matchingConfig = config[value?.__typename];
 
-if(matchingConfig) {
-  for(const property of Object.keys(value)) {
-    const realFieldName = response.locals.aliases[[...(path.filter((segment: any) => segment !== 'data')), key, property].join('.')] ?? property;
+// if(matchingConfig) {
+//   for(const property of Object.keys(value)) {
+//     const realFieldName = response.locals.aliases[[...(path.filter((segment: any) => segment !== 'data')), key, property].join('.')] ?? property;
 
-    const matchingRule = matchingConfig.find((rule: any) => rule.field === realFieldName);
+//     const matchingRule = matchingConfig.find((rule: any) => rule.field === realFieldName);
 
-    console.log({realFieldName, matchingRule, deleteIf: matchingRule?.deleteIf(value)})
+//     console.log({realFieldName, matchingRule, deleteIf: matchingRule?.deleteIf(value)})
 
-    if(matchingRule && matchingRule.deleteIf(value)) {
-      console.log('delete email')
-        delete value[property];
-    }
-  }
-}
-              } catch(error) {
-                console.error(error)
-              }
-
-
-              // if(value?.__typename === 'Profile') {
-
-              //   const hasAccessToPrivateData = !!value?.id && value?.id === request.session.auth?.address;
+//     if(matchingRule && matchingRule.deleteIf(value)) {
+//       console.log('delete email')
+//         delete value[property];
+//     }
+//   }
+// }
+//               } catch(error) {
+//                 console.error(error)
+//               }
 
 
-              //   for(const property of Object.keys(value)) {
-              //     console.log('alias path: ', [...path, key, property].join('.'))
-              //     const realFieldName = response.locals.aliases[[...(path.filter((segment: any) => segment !== 'data')), key, property].join('.')] ?? property;
-              //     console.log({property, realFieldName})
-              //     const profileConfig = config['Profile'];
+//               // if(value?.__typename === 'Profile') {
+
+//               //   const hasAccessToPrivateData = !!value?.id && value?.id === request.session.auth?.address;
 
 
-              //     if(profileConfig.includes(realFieldName)) {
-              //       console.log('delete email')
-              //       if(!hasAccessToPrivateData) {
-              //         delete value[property];
-              //       }
-              //     }
-              //   }
-
-              //   // console.log('hello', value, key)
-
-              //   // const emailFieldName = response.locals.requestSanitation['email'] ? response.locals.requestSanitation['email'].split('.').pop() : 'email';
-
-              //   // const emailPath = response.locals.requestSanitation['email'] ? ['data', ...response.locals.requestSanitation['email'].split('.')] : [...path, key, 'email'];
-              //   // console.log(emailFieldName)
+//               //   for(const property of Object.keys(value)) {
+//               //     console.log('alias path: ', [...path, key, property].join('.'))
+//               //     const realFieldName = response.locals.aliases[[...(path.filter((segment: any) => segment !== 'data')), key, property].join('.')] ?? property;
+//               //     console.log({property, realFieldName})
+//               //     const profileConfig = config['Profile'];
 
 
-              //   // console.log({ hasAccessToPrivateData})
+//               //     if(profileConfig.includes(realFieldName)) {
+//               //       console.log('delete email')
+//               //       if(!hasAccessToPrivateData) {
+//               //         delete value[property];
+//               //       }
+//               //     }
+//               //   }
 
-              //   // const copiedValue = {
-              //   //   ...value
-              //   // }
+//               //   // console.log('hello', value, key)
 
-              //   // if (!hasAccessToPrivateData) {
-              //   //   delete copiedValue[emailFieldName]
-              //   // }
+//               //   // const emailFieldName = response.locals.requestSanitation['email'] ? response.locals.requestSanitation['email'].split('.').pop() : 'email';
 
-              //   // cbSetValue(copiedValue)
+//               //   // const emailPath = response.locals.requestSanitation['email'] ? ['data', ...response.locals.requestSanitation['email'].split('.')] : [...path, key, 'email'];
+//               //   // console.log(emailFieldName)
 
-              //   // let currentObj = modifiedBody;
-              //   // let idx = 0;
-              //   // while (idx < emailPath.length - 1) {
-              //   //   currentObj = currentObj[emailPath[idx]];
-              //   //   if (!currentObj) {
-              //   //     delete currentObj[emailPath[emailPath.length - 1]];
-              //   //   }
-              //   //   idx++;
-              //   // }
-              //   // if (!hasAccessToPrivateData) {
-              //   //   delete currentObj[emailPath[emailPath.length - 1]];
-              //   // }
 
-              // }
+//               //   // console.log({ hasAccessToPrivateData})
 
-              // if (key === '__typename' && value === 'Profile') {
-              //   const emailPath = response.locals.requestSanitation['email'] ? ['data', ...response.locals.requestSanitation['email'].split('.')] : [...path, 'email'];
-              //   console.log(emailPath)
-              //   // const fieldToDeleteOnProfile = ['email'];
-              //   // delete modifiedBody.data.getUser.profile.email;
-              //   // const hasAlias = !!response.locals.requestSanitation[path.slice(1).join('.')];
-              //   // console.log({ hasAlias})
-              //   // console.log(path.join('.'));
-                // let currentObj = modifiedBody;
-                // let idx = 0;
-                // while (idx < emailPath.length -1 ) {
-                //   currentObj = currentObj[emailPath[idx]];
-                //   if (!currentObj) {
-                //     delete currentObj[emailPath[emailPath.length - 1]];
-                //   }
-                //   idx++;
-                // }
-                // delete currentObj[emailPath[emailPath.length - 1]];
-              // }
-              /* your logic here */
-            },
-            enterLevel: (level: any, path: any) => {
-              /* your logic here */
-            },
-            exitLevel: (level: any, path: any) => {
-              /* your logic here */
-            }
-          };
+//               //   // const copiedValue = {
+//               //   //   ...value
+//               //   // }
 
-          jt.traverse(body, callbacks);
-          return modifiedBody;
-        }
-      } catch (error) {
-        // proxyResponse.destroy();
-      }
-      return body;
-    });
+//               //   // if (!hasAccessToPrivateData) {
+//               //   //   delete copiedValue[emailFieldName]
+//               //   // }
+
+//               //   // cbSetValue(copiedValue)
+
+//               //   // let currentObj = modifiedBody;
+//               //   // let idx = 0;
+//               //   // while (idx < emailPath.length - 1) {
+//               //   //   currentObj = currentObj[emailPath[idx]];
+//               //   //   if (!currentObj) {
+//               //   //     delete currentObj[emailPath[emailPath.length - 1]];
+//               //   //   }
+//               //   //   idx++;
+//               //   // }
+//               //   // if (!hasAccessToPrivateData) {
+//               //   //   delete currentObj[emailPath[emailPath.length - 1]];
+//               //   // }
+
+//               // }
+
+//               // if (key === '__typename' && value === 'Profile') {
+//               //   const emailPath = response.locals.requestSanitation['email'] ? ['data', ...response.locals.requestSanitation['email'].split('.')] : [...path, 'email'];
+//               //   console.log(emailPath)
+//               //   // const fieldToDeleteOnProfile = ['email'];
+//               //   // delete modifiedBody.data.getUser.profile.email;
+//               //   // const hasAlias = !!response.locals.requestSanitation[path.slice(1).join('.')];
+//               //   // console.log({ hasAlias})
+//               //   // console.log(path.join('.'));
+//                 // let currentObj = modifiedBody;
+//                 // let idx = 0;
+//                 // while (idx < emailPath.length -1 ) {
+//                 //   currentObj = currentObj[emailPath[idx]];
+//                 //   if (!currentObj) {
+//                 //     delete currentObj[emailPath[emailPath.length - 1]];
+//                 //   }
+//                 //   idx++;
+//                 // }
+//                 // delete currentObj[emailPath[emailPath.length - 1]];
+//               // }
+//               /* your logic here */
+//             },
+//             enterLevel: (level: any, path: any) => {
+//               /* your logic here */
+//             },
+//             exitLevel: (level: any, path: any) => {
+//               /* your logic here */
+//             }
+//           };
+
+//           jt.traverse(body, callbacks);
+//           return modifiedBody;
+//         }
+//       } catch (error) {
+//         // proxyResponse.destroy();
+//       }
+//       return body;
+//     });
   },
   logProvider: () => ({
     log: logger,
