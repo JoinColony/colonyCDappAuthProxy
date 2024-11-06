@@ -64,6 +64,14 @@ export enum MutationOperations {
   BridgeUpdateBankAccount = 'bridgeUpdateBankAccount',
 }
 
+// All queries are allowed by default, add exceptions with specific rules here
+export enum QueryOperations {
+  /*
+   * Notifications
+   */
+  GetUserNotificationsHMAC = 'getUserNotificationsHMAC',
+}
+
 export enum HttpStatuses {
   OK = 200,
   BAD_REQUEST = 400,
