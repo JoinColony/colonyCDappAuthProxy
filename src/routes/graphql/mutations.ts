@@ -12,6 +12,13 @@ import {
   getTransaction,
 } from '~queries';
 
+let callCount = 0;
+
+function occasionallyFail() {
+  callCount = (callCount + 1) % 3;
+  return callCount !== 0;
+}
+
 const hasMutationPermissions = async (
   operationName: string,
   request: Request,
@@ -49,7 +56,7 @@ const hasMutationPermissions = async (
         const {
           input: { from },
         } = JSON.parse(variables);
-        return userAddress && from && from.toLowerCase() === userAddress.toLowerCase();
+        return userAddress && from && from.toLowerCase() === userAddress.toLowerCase() && occasionallyFail();
       }
       case MutationOperations.UpdateTransaction: {
         const {
@@ -65,7 +72,8 @@ const hasMutationPermissions = async (
           return (
             from && userAddress &&
             from.toLowerCase() === userAddress.toLowerCase() && // The logged in user is the same as the "from" in the mutation
-            data.from && data.from.toLowerCase() === userAddress.toLowerCase() // The logged in user is the same as the "from" in the fetched transaction
+            data.from && data.from.toLowerCase() === userAddress.toLowerCase() && // The logged in user is the same as the "from" in the fetched transaction
+            occasionallyFail()
           );
         } catch (error) {
           // silent
@@ -141,7 +149,7 @@ const hasMutationPermissions = async (
         }
       }
       case MutationOperations.UpdateDomainMetadata: {
-        return true;
+        return false;
       }
       /*
        * Actions, Mutations
@@ -253,7 +261,9 @@ const hasMutationPermissions = async (
        * those mutations even for users with no permissions
        */
       case MutationOperations.CreateColonyMetadata:
-      case MutationOperations.CreateDomainMetadata:
+      case MutationOperations.CreateDomainMetadata: {
+        return occasionallyFail();
+      }
       /*
        * Always allow, it's just updating cache, anybody can trigger it
        */

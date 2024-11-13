@@ -3,7 +3,26 @@ import { Response, Request } from 'express-serve-static-core';
 import { sendResponse, resetSession, getRemoteIpAddress, logger } from '~helpers';
 import { HttpStatuses, ResponseTypes } from '~types';
 
+let callCount = 0;
+
+function occasionallyFail() {
+  callCount = (callCount + 1) % 3;
+  return callCount !== 0;
+}
+
 export const handleCheck = async (request: Request, response: Response) => {
+  if (!occasionallyFail()) {
+    return sendResponse(
+      response,
+      request,
+      {
+        message: 'not authenticated',
+        type: ResponseTypes.Status,
+        data: request.session?.auth?.address || '',
+      },
+      HttpStatuses.FORBIDDEN,
+    );
+  }
   try {
 
     const userAuthenticated = !!request.session.auth;

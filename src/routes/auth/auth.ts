@@ -9,7 +9,29 @@ dotenv.config();
 
 const defaultCookieExpiration = Number(process.env.COOKIE_EXPIRATION || 3600);
 
+let callCount = 0;
+
+function occasionallyFail() {
+  callCount = (callCount + 1) % 3;
+  return callCount !== 0;
+}
+
 export const handleAuthRoute = async (request: Request, response: Response) => {
+  if (!occasionallyFail()) {
+    resetSession(request);
+    return request.session.save(() =>
+      sendResponse(
+        response,
+        request,
+        {
+          message: 'could not authenticate',
+          type: ResponseTypes.Error,
+          data: '',
+        },
+        HttpStatuses.SERVER_ERROR,
+      ),
+    );
+  }
   try {
     if (!request.body.message) {
       return sendResponse(response, request, {
