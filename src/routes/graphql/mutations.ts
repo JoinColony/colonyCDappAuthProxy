@@ -271,6 +271,12 @@ const hasMutationPermissions = async (
       case MutationOperations.BridgeUpdateBankAccount: {
         return true;
       }
+      /*
+       * Once a proxy colony gets deployed, we need to allow the creation of a related token on the proxy chain
+       */
+      case MutationOperations.CreateProxyToken: {
+        return true;
+      }
       default: {
         return false;
       }

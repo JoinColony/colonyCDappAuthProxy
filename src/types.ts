@@ -50,6 +50,7 @@ export enum MutationOperations {
   GetTokenFromEverywhere = 'getTokenFromEverywhere',
   CreateColonyTokens = 'createColonyTokens',
   DeleteColonyTokens = 'deleteColonyTokens',
+  CreateProxyToken = 'createProxyToken',
   /*
    * Expenditures
    */
