@@ -146,7 +146,8 @@ const hasMutationPermissions = async (
       /*
        * Actions, Mutations
        */
-      case MutationOperations.CreateColonyActionMetadata: {
+      case MutationOperations.CreateColonyActionMetadata:
+      case MutationOperations.UpdateColonyAction: {
         const {
           input: { id: actionId },
         } = JSON.parse(variables);
