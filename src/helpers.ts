@@ -1,10 +1,3 @@
-import {
-  DocumentNode,
-  Kind,
-  OperationDefinitionNode,
-  OperationTypeNode,
-  parse,
-} from 'graphql';
 import dotenv from 'dotenv';
 import { default as fetch, Request as NodeFetchRequst } from 'node-fetch';
 
@@ -12,10 +5,7 @@ import {
   Response as ExpressResponse,
   Request,
 } from 'express-serve-static-core';
-import { RequestError } from './RequestError';
 import {
-  OperationTypes,
-  ParsedOperation,
   StaticOriginCallback,
   HttpStatuses,
   Response,
@@ -29,69 +19,6 @@ dotenv.config();
 const BLOCK_TIME = Number(process.env.DEFAULT_BLOCK_TIME) * 1000 || 5000;
 
 export const isDevMode = (): boolean => process.env.NODE_ENV !== 'prod';
-
-export const parseTargetOperation = (
-  body: Record<string, any>,
-): ParsedOperation => {
-  if (!body) {
-    throw new RequestError('no body');
-  }
-  if (!body?.query) {
-    throw new RequestError('graphql request malformed');
-  }
-
-  let parsedQuery: DocumentNode | undefined;
-  try {
-    parsedQuery = parse(body.query);
-  } catch (error) {
-    // silent
-  }
-
-  if (!parsedQuery) {
-    throw new RequestError('graphql request malformed');
-  }
-
-  const allOperations = parsedQuery.definitions.filter(
-    (def) => def.kind === Kind.OPERATION_DEFINITION,
-  );
-
-  let targetOperation: OperationDefinitionNode | undefined;
-
-  if (body.operationName) {
-    targetOperation = allOperations.find(
-      (o) => o.name && o.name.value === body.operationName,
-    );
-  } else {
-    if (allOperations.length !== 1) {
-      throw new RequestError('graphql request malformed');
-    }
-    targetOperation = allOperations[0];
-  }
-
-  if (!targetOperation) {
-    throw new RequestError('graphql request malformed');
-  }
-
-  const type =
-    targetOperation.operation === OperationTypeNode.MUTATION
-      ? OperationTypes.Mutation
-      : OperationTypes.Query;
-
-  // The first field will contain the query/mutation/subscription name
-  const firstField = targetOperation.selectionSet.selections.find(
-    (selection) => selection.kind === Kind.FIELD,
-  );
-
-  if (!firstField || firstField.kind !== Kind.FIELD) {
-    throw new RequestError('graphql request malformed');
-  }
-
-  return {
-    type,
-    field: firstField.name.value,
-    variables: body.variables,
-  };
-};
 
 export const getStaticOrigin = (
   origin?: string,

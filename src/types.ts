@@ -1,78 +1,5 @@
 import { RequestHandler } from 'http-proxy-middleware';
 
-export enum OperationTypes {
-  Query = 'query',
-  Mutation = 'mutation',
-}
-
-export enum DefinitionTypes {
-  Operation = 'OperationDefinition',
-  Fragment = 'FragmentDefinition',
-}
-
-export enum MutationOperations {
-  /*
-   * User
-   */
-  CreateUniqueUser = 'createUniqueUser',
-  UpdateUserProfile = 'updateProfile',
-  UpdateUserNotificationsData = 'updateNotificationsData',
-  CreateTransaction = 'createTransaction',
-  UpdateTransaction = 'updateTransaction',
-  CreateUserTokens = 'createUserTokens',
-  CreateUserNotificationsData = 'createUserNotificationsData',
-  InitializeUser = 'initializeUser',
-  /*
-   * Colony
-   */
-  CreateColonyMetadata = 'createColonyMetadata',
-  UpdateColonyMetadata = 'updateColonyMetadata',
-  ValidateUserInvite = 'validateUserInvite',
-  CreateColonyContributor = 'createColonyContributor',
-  UpdateColonyContributor = 'updateColonyContributor',
-  UpdateContributorsWithReputation = 'updateContributorsWithReputation',
-  CreateColonyEtherealMetadata = 'createColonyEtherealMetadata',
-  /*
-   * Domains
-   */
-  CreateDomain = 'createDomain',
-  CreateDomainMetadata = 'createDomainMetadata',
-  UpdateDomainMetadata = 'updateDomainMetadata',
-  /*
-   * Actions, Mutations
-   */
-  CreateColonyActionMetadata = 'createColonyActionMetadata',
-  UpdateColonyAction = 'updateColonyAction',
-  CreateAnnotation = 'createAnnotation',
-  CreateColonyDecision = 'createColonyDecision',
-  /*
-   * Tokens
-   */
-  GetTokenFromEverywhere = 'getTokenFromEverywhere',
-  CreateColonyTokens = 'createColonyTokens',
-  DeleteColonyTokens = 'deleteColonyTokens',
-  /*
-   * Expenditures
-   */
-  CreateExpenditureMetadata = 'createExpenditureMetadata',
-  CreateStreamingPaymentMetadata = 'createStreamingPaymentMetadata',
-  UpdateStreamingPaymentMetadata = 'updateStreamingPaymentMetadata',
-  /*
-   * Bridge / Crypto-to-fiat
-   */
-  BridgeXYZMutation = 'bridgeXYZMutation',
-  BridgeCreateBankAccount = 'bridgeCreateBankAccount',
-  BridgeUpdateBankAccount = 'bridgeUpdateBankAccount',
-}
-
-// All queries are allowed by default, add exceptions with specific rules here
-export enum QueryOperations {
-  /*
-   * Notifications
-   */
-  GetUserNotificationsHMAC = 'getUserNotificationsHMAC',
-}
-
 export enum HttpStatuses {
   OK = 200,
   BAD_REQUEST = 400,
@@ -152,9 +79,3 @@ export type UserRole = {
   role_5: boolean | null;
   role_6: boolean | null;
 };
-
-export interface ParsedOperation {
-  type: OperationTypes;
-  field: string;
-  variables: Record<string, unknown> | undefined;
-}

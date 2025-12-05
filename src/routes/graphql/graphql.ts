@@ -2,27 +2,25 @@ import dotenv from 'dotenv';
 import { fixRequestBody, Options, RequestHandler } from 'http-proxy-middleware';
 import { Response, Request, NextFunction } from 'express-serve-static-core';
 import { ClientRequest, IncomingMessage } from 'http';
+import { parse } from 'graphql';
 
 import {
   getStaticOrigin,
   sendResponse,
   getRemoteIpAddress,
   logger,
-  parseTargetOperation,
 } from '~helpers';
 import {
   ResponseTypes,
   HttpStatuses,
   ContentTypes,
   Headers,
-  OperationTypes,
-  ParsedOperation,
   Urls,
   ServerMethods,
 } from '~types';
-
-import addressCanExecuteMutation from './mutations';
-import addressCanExecuteQuery from './queries';
+import { validateRequest } from '../../validateRequest';
+import { rules } from '../../rules';
+import { getSchema } from '../../schema';
 
 dotenv.config();
 
@@ -43,16 +41,25 @@ export const operationExecutionHandler: RequestHandler = async (
   const requestRemoteAddress = getRemoteIpAddress(request);
 
   try {
-    const parsedOperation = parseTargetOperation(request.body);
-    response.locals.parsedOperation = parsedOperation;
+    const schema = getSchema();
+    if (!schema) {
+      throw new Error('Schema not initialized');
+    }
 
-    response.locals.canExecuteMutation = await addressCanExecuteMutation(
-      parsedOperation,
+    const document = parse(request.body.query);
+    const ctx = {
       userAddress,
-    );
-    response.locals.canExecuteQuery = await addressCanExecuteQuery(
-      parsedOperation,
-      userAddress,
+      variables: request.body.variables ?? {},
+    };
+
+    /*
+     * @NOTE Handle async GraphQL logic to decide if we allow an operation or not
+     */
+    response.locals.canExecute = await validateRequest(
+      document,
+      schema,
+      rules,
+      ctx,
     );
     return nextFn();
   } catch (error: any) {
@@ -63,7 +70,16 @@ export const operationExecutionHandler: RequestHandler = async (
         request.body ? JSON.stringify(request.body) : ''
       } from ${requestRemoteAddress}`,
     );
-    return sendResponse(response, request, error, HttpStatuses.SERVER_ERROR);
+    return sendResponse(
+      response,
+      request,
+      {
+        message: error?.message || 'graphql parsing error',
+        type: ResponseTypes.Error,
+        data: '',
+      },
+      HttpStatuses.SERVER_ERROR,
+    );
   }
 };
 
@@ -83,122 +99,34 @@ export const graphQlProxyRouteHandler: Options = {
     const userAuthenticated = !!request.session.auth;
     const userAddress = request.session.auth?.address || '';
     const requestRemoteAddress = getRemoteIpAddress(request);
-    try {
-      const parsedOperation = response.locals.parsedOperation as
-        | ParsedOperation
-        | undefined;
 
-      if (parsedOperation) {
-        const { type: operationType, field, variables } = parsedOperation;
+    const canExecute = response.locals.canExecute;
 
-        console.log('operationType in proxy', operationType);
+    logger(
+      `${userAuthenticated ? 'auth' : 'non-auth'} request${
+        userAddress ? ` from ${userAddress}` : ''
+      } at ${requestRemoteAddress} was ${
+        canExecute ? '\x1b[32m ALLOWED \x1b[0m' : '\x1b[31m FORBIDDEN \x1b[0m'
+      }`,
+    );
 
-        /*
-         * Mutations need to be handled on a case by case basis
-         * Some are allowed without auth (cache refresh ones)
-         * Others based on if the user has the appropriate address and/or role
-         */
-        const canExecuteMutation =
-          operationType === OperationTypes.Mutation &&
-          response.locals.canExecuteMutation;
-
-        /*
-         * By default, all queries are allowed
-         * However, some will not execute correctly if a user address is not provided
-         */
-        const canExecuteQuery =
-          operationType === OperationTypes.Query &&
-          response.locals.canExecuteQuery;
-
-        console.log('canExecuteQuery', {
-          first: operationType === OperationTypes.Query,
-          second: response.locals.canExecuteQuery,
-        });
-
-        const canExecute = canExecuteMutation || canExecuteQuery;
-
-        logger(
-          `${
-            userAuthenticated ? `auth` : 'non-auth'
-          } ${operationType} ${field} ${JSON.stringify(variables).slice(
-            0,
-            500,
-          )}${
-            JSON.stringify(variables).length > 499
-              ? ` [+${JSON.stringify(variables).length - 499} chars more]`
-              : ''
-          }${
-            userAddress ? ` from ${userAddress}` : ''
-          } at ${requestRemoteAddress} was ${
-            canExecute
-              ? '\x1b[32m ALLOWED \x1b[0m'
-              : '\x1b[31m FORBIDDEN \x1b[0m'
-          }`,
-        );
-
-        console.log('canExecute', canExecute);
-
-        // allowed
-        if (canExecute) {
-          proxyRequest.setHeader(Headers.WalletAddress, userAddress);
-          return fixRequestBody(proxyRequest, request);
-        }
-
-        // forbidden
-        return sendResponse(
-          response,
-          request,
-          {
-            message: 'forbidden',
-            type: ResponseTypes.Auth,
-            data: '',
-          },
-          HttpStatuses.FORBIDDEN,
-        );
-      }
-
-      /*
-       * Malformed request
-       */
-      logger(
-        `${userAuthenticated ? `auth` : 'non-auth'} request malformed graphql ${
-          request.body ? JSON.stringify(request.body) : ''
-        }${
-          userAddress ? ` from ${userAddress}` : ''
-        } at ${requestRemoteAddress}`,
-      );
-      return sendResponse(
-        response,
-        request,
-        {
-          message: 'malformed graphql request',
-          type: ResponseTypes.Error,
-          data: '',
-        },
-        HttpStatuses.SERVER_ERROR,
-      );
-    } catch (error: any) {
-      /*
-       * GraphQL error (comes from the AppSync endopoint)
-       */
-      logger(
-        `${userAuthenticated ? `auth` : 'non-auth'} graphql proxy error ${
-          error?.message
-        } ${request.body ? JSON.stringify(request.body) : ''}${
-          userAddress ? ` from ${userAddress}` : ''
-        } at ${requestRemoteAddress}`,
-      );
-      return sendResponse(
-        response,
-        request,
-        {
-          message: 'graphql error',
-          type: ResponseTypes.Error,
-          data: error?.message || '',
-        },
-        HttpStatuses.SERVER_ERROR,
-      );
+    // Allowed
+    if (canExecute) {
+      proxyRequest.setHeader(Headers.WalletAddress, userAddress);
+      return fixRequestBody(proxyRequest, request);
     }
+
+    // Forbidden
+    return sendResponse(
+      response,
+      request,
+      {
+        message: 'forbidden',
+        type: ResponseTypes.Auth,
+        data: '',
+      },
+      HttpStatuses.FORBIDDEN,
+    );
   },
   // selfHandleResponse: true,
   onProxyRes: (proxyResponse: IncomingMessage, request: Request) => {
