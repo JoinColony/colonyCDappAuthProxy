@@ -152,3 +152,9 @@ export type UserRole = {
   role_5: boolean | null;
   role_6: boolean | null;
 };
+
+export interface ParsedOperation {
+  type: OperationTypes;
+  field: string;
+  variables: Record<string, unknown> | undefined;
+}

@@ -8,7 +8,7 @@ import {
   sendResponse,
   getRemoteIpAddress,
   logger,
-  detectOperation,
+  parseTargetOperation,
 } from '~helpers';
 import {
   ResponseTypes,
@@ -16,6 +16,7 @@ import {
   ContentTypes,
   Headers,
   OperationTypes,
+  ParsedOperation,
   Urls,
   ServerMethods,
 } from '~types';
@@ -38,14 +39,21 @@ export const operationExecutionHandler: RequestHandler = async (
     return nextFn();
   }
 
-  const userAddress = request.session.auth?.address || '';
+  const userAddress = request.session.auth?.address;
   const requestRemoteAddress = getRemoteIpAddress(request);
 
   try {
+    const parsedOperation = parseTargetOperation(request.body);
+    response.locals.parsedOperation = parsedOperation;
+
     response.locals.canExecuteMutation = await addressCanExecuteMutation(
-      request,
+      parsedOperation,
+      userAddress,
     );
-    response.locals.canExecuteQuery = await addressCanExecuteQuery(request);
+    response.locals.canExecuteQuery = await addressCanExecuteQuery(
+      parsedOperation,
+      userAddress,
+    );
     return nextFn();
   } catch (error: any) {
     logger(
@@ -76,13 +84,14 @@ export const graphQlProxyRouteHandler: Options = {
     const userAddress = request.session.auth?.address || '';
     const requestRemoteAddress = getRemoteIpAddress(request);
     try {
-      if (request?.body?.query) {
-        /*
-         * Used for UI only, the real magic with detection happens in operationExecutionHandler
-         */
-        const { operationType, operations, variables } = detectOperation(
-          request.body,
-        );
+      const parsedOperation = response.locals.parsedOperation as
+        | ParsedOperation
+        | undefined;
+
+      if (parsedOperation) {
+        const { type: operationType, field, variables } = parsedOperation;
+
+        console.log('operationType in proxy', operationType);
 
         /*
          * Mutations need to be handled on a case by case basis
@@ -101,12 +110,17 @@ export const graphQlProxyRouteHandler: Options = {
           operationType === OperationTypes.Query &&
           response.locals.canExecuteQuery;
 
+        console.log('canExecuteQuery', {
+          first: operationType === OperationTypes.Query,
+          second: response.locals.canExecuteQuery,
+        });
+
         const canExecute = canExecuteMutation || canExecuteQuery;
 
         logger(
           `${
             userAuthenticated ? `auth` : 'non-auth'
-          } ${operationType} ${operations} ${JSON.stringify(variables).slice(
+          } ${operationType} ${field} ${JSON.stringify(variables).slice(
             0,
             500,
           )}${
@@ -121,6 +135,8 @@ export const graphQlProxyRouteHandler: Options = {
               : '\x1b[31m FORBIDDEN \x1b[0m'
           }`,
         );
+
+        console.log('canExecute', canExecute);
 
         // allowed
         if (canExecute) {
