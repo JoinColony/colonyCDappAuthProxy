@@ -27,7 +27,13 @@ export const handleAuthRoute = async (request: Request, response: Response) => {
         data: '',
       }, HttpStatuses.UNPROCESSABLE);
     }
-    const { data: message } = await SIWEObject.verify({ signature: request.body.signature, nonce: request.session.nonce });
+    const authDomain = process.env.AUTH_DOMAIN || "AUTH_DOMAIN_NOT_SET";
+
+    const { data: message } = await SIWEObject.verify({
+      signature: request.body.signature,
+      nonce: request.session.nonce,
+      domain: authDomain,
+    });
 
     request.session.auth = message;
     request.session.cookie.expires = new Date(Date.now() + (defaultCookieExpiration * 1000));
@@ -42,6 +48,7 @@ export const handleAuthRoute = async (request: Request, response: Response) => {
     }));
 
   } catch (error: any) {
+    logger(`Authentication failed: ${error?.message || JSON.stringify(error?.error) || error.toString()}`);
     resetSession(request);
     return request.session.save(() => sendResponse(response, request, {
       message: 'could not authenticate',
