@@ -1,10 +1,17 @@
 import { shield, rule, allow, deny, and } from 'graphql-shield';
 import { Path } from 'graphql/jsutils/Path';
 import { FieldNode, GraphQLResolveInfo, ValueNode } from 'graphql';
-import { ColonyRole } from '@colony/core';
+import { ColonyRole, Id } from '@colony/core';
 
 import { fetchWithRetry } from './helpers';
-import { getColonyRole, getTransaction } from './queries';
+import {
+  getAllColonyRoles,
+  getColonyAction,
+  getColonyRole,
+  getColonyTokens,
+  getStreamingPayment,
+  getTransaction,
+} from './queries';
 import { UserRole } from '~types';
 
 const getPathArray = (path: Path | undefined): (string | number)[] => {
@@ -97,9 +104,9 @@ const ownsTransaction = rule()(async (_parent, args, ctx) => {
   if (!ctx.userAddress) {
     return false;
   }
-  const input = args.input as Record<string, unknown>;
+  const { id } = args.input as { id: string };
   const transaction = await fetchWithRetry<{ from: string }>(getTransaction, {
-    transactionId: input.id,
+    transactionId: id,
   });
   return transaction?.from?.toLowerCase() === ctx.userAddress.toLowerCase();
 });
@@ -108,8 +115,8 @@ const isOwnContributor = rule()((_parent, args, ctx) => {
   if (!ctx.userAddress) {
     return false;
   }
-  const input = args.input as Record<string, unknown>;
-  const [, contributorAddress] = String(input.id).split('_');
+  const { id } = args.input as { id: string };
+  const [, contributorAddress] = id.split('_');
   return contributorAddress?.toLowerCase() === ctx.userAddress.toLowerCase();
 });
 
@@ -136,7 +143,68 @@ const inputAllowsOnly = (allowedFields: string[]) =>
     return providedFields.every((field) => allowedFields.includes(field));
   });
 
-const canAccessEmail = rule()((_parent, _args, ctx, info) => {
+const canDeleteColonyTokens = rule()(async (_parent, args, ctx) => {
+  if (!ctx.userAddress) {
+    return false;
+  }
+  const { id } = args.input as { id: string };
+  const tokenData = await fetchWithRetry<{ colonyID: string }>(
+    getColonyTokens,
+    { tokenColonyId: id },
+  );
+  if (!tokenData?.colonyID) {
+    return false;
+  }
+  const combinedId = `${tokenData.colonyID}_1_${ctx.userAddress}_roles`;
+  const data = await fetchWithRetry<UserRole>(getColonyRole, { combinedId });
+  return !!data?.[`role_${ColonyRole.Root}`];
+});
+
+const isActionInitiator = rule()(async (_parent, args, ctx) => {
+  if (!ctx.userAddress) {
+    return false;
+  }
+  const { id } = args.input as { id: string };
+  const action = await fetchWithRetry<{ initiatorAddress: string }>(
+    getColonyAction,
+    { actionId: id },
+  );
+  return (
+    action?.initiatorAddress?.toLowerCase() === ctx.userAddress.toLowerCase()
+  );
+});
+
+const canUpdateStreamingPaymentMetadata = rule()(async (_parent, args, ctx) => {
+  if (!ctx.userAddress) {
+    return false;
+  }
+  const { id: streamingPaymentId } = args.input as { id: string };
+  const streamingPayment = await fetchWithRetry<{ nativeDomainId: number }>(
+    getStreamingPayment,
+    { streamingPaymentId },
+  );
+  if (!streamingPayment) {
+    return false;
+  }
+  const [colonyAddress] = streamingPaymentId.split('_');
+  const rolesData = await fetchWithRetry<{ items: UserRole[] }>(
+    getAllColonyRoles,
+    { targetAddress: ctx.userAddress, colonyAddress },
+  );
+  if (!rolesData?.items) {
+    return false;
+  }
+  return rolesData.items.some((item) => {
+    const [, roleDomainId] = item.id.split('_');
+    const matchesDomain =
+      roleDomainId === String(streamingPayment.nativeDomainId) ||
+      roleDomainId === String(Id.RootDomain);
+    const hasRole = !!item[`role_${ColonyRole.Administration}`];
+    return matchesDomain && hasRole;
+  });
+});
+
+const isOwnUser = rule()((_parent, _args, ctx, info) => {
   if (!ctx.userAddress) {
     return false;
   }
@@ -148,11 +216,6 @@ const canAccessEmail = rule()((_parent, _args, ctx, info) => {
 
   if (rootField === 'getUserByAddress') {
     return String(rootArgs.id).toLowerCase() === ctx.userAddress.toLowerCase();
-  }
-
-  if (rootField === 'updateProfile') {
-    const input = rootArgs.input as Record<string, unknown>;
-    return String(input.id).toLowerCase() === ctx.userAddress.toLowerCase();
   }
 
   return false;
@@ -183,6 +246,9 @@ export const permissions = shield(
         'input.initiatorAddress',
       ),
       updateColonyMetadata: hasColonyRole('input.id', ColonyRole.Root),
+      createColonyTokens: hasColonyRole('input.colonyID', ColonyRole.Root),
+      deleteColonyTokens: canDeleteColonyTokens,
+      createColonyActionMetadata: isActionInitiator,
 
       initializeUser: isAuthenticated,
       createColonyMetadata: isAuthenticated,
@@ -190,6 +256,7 @@ export const permissions = shield(
       updateDomainMetadata: isAuthenticated,
       createExpenditureMetadata: isAuthenticated,
       createStreamingPaymentMetadata: isAuthenticated,
+      updateStreamingPaymentMetadata: canUpdateStreamingPaymentMetadata,
       createAnnotation: isAuthenticated,
       createColonyDecision: isAuthenticated,
       bridgeXYZMutation: isAuthenticated,
@@ -197,7 +264,11 @@ export const permissions = shield(
       bridgeUpdateBankAccount: isAuthenticated,
     },
     Profile: {
-      email: canAccessEmail,
+      email: isOwnUser,
+    },
+    User: {
+      bridgeCustomerId: isOwnUser,
+      privateBetaInviteCode: isOwnUser,
     },
   },
   {
