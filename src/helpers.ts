@@ -8,7 +8,7 @@ import {
 import {
   StaticOriginCallback,
   HttpStatuses,
-  Response,
+  ApiResponse,
   Headers,
   ContentTypes,
   ServerMethods,
@@ -47,7 +47,7 @@ export const getStaticOrigin = (
 export const sendResponse = (
   response: ExpressResponse,
   request: Request,
-  message?: Response,
+  message?: ApiResponse,
   status: HttpStatuses = HttpStatuses.OK,
 ) =>
   response
@@ -84,14 +84,21 @@ export const logger = (...args: any[]): void => {
 
 export const graphqlRequest = async (
   queryOrMutation: string,
-  variables?: Record<string, any>,
+  variables?: Record<string, unknown>,
+  walletAddress?: string,
 ) => {
+  const headers: Record<string, string> = {
+    [Headers.ApiKey]: process.env.APPSYNC_API_KEY || '',
+    [Headers.ContentType]: ContentTypes.Json,
+  };
+
+  if (walletAddress) {
+    headers[Headers.WalletAddress] = walletAddress;
+  }
+
   const options = {
     method: ServerMethods.Post.toUpperCase(),
-    headers: {
-      [Headers.ApiKey]: process.env.APPSYNC_API_KEY || '',
-      [Headers.ContentType]: ContentTypes.Json,
-    },
+    headers,
     body: JSON.stringify({
       query: queryOrMutation,
       variables,
@@ -100,12 +107,9 @@ export const graphqlRequest = async (
 
   const request = new NodeFetchRequst(process.env.APPSYNC_API || '', options);
 
-  let body;
-  let response;
-
   try {
-    response = await fetch(request);
-    body = await response.json();
+    const response = await fetch(request);
+    const body = await response.json();
     return body;
   } catch (error) {
     /*
@@ -116,37 +120,26 @@ export const graphqlRequest = async (
   }
 };
 
-export const delay = async (timeout: number) => {
-  return new Promise((resolve) => {
-    setTimeout(resolve, timeout);
-  });
-};
+const MAX_RETRIES = 3;
 
-export const tryFetchGraphqlQuery = async (
-  queryOrMutation: string,
-  variables?: Record<string, any>,
-  maxRetries: number = 3,
-  blockTime: number = BLOCK_TIME,
-) => {
-  let currentTry = 0;
-  while (true) {
-    const result = await graphqlRequest(queryOrMutation, variables);
+const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
-    /*
-     * @NOTE That this limits to only fetching one operation at a time
-     */
+export const fetchWithRetry = async <T>(
+  query: string,
+  variables: Record<string, unknown>,
+): Promise<T | null> => {
+  for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
+    const result = await graphqlRequest(query, variables);
     if (result?.data) {
-      const { data } = result;
-      if (data[Object.keys(data)[0]]) {
-        return data[Object.keys(data)[0]];
+      const data = result.data;
+      const value = data[Object.keys(data)[0]];
+      if (value) {
+        return value as T;
       }
     }
-
-    if (currentTry < maxRetries) {
-      await delay(blockTime);
-      currentTry += 1;
-    } else {
-      throw new Error('Could not fetch graphql data in time');
+    if (attempt < MAX_RETRIES) {
+      await delay(BLOCK_TIME);
     }
   }
+  return null;
 };
