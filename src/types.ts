@@ -1,4 +1,4 @@
-import { RequestHandler } from 'http-proxy-middleware';
+import { RequestHandler } from 'express';
 
 export enum HttpStatuses {
   OK = 200,
@@ -16,7 +16,7 @@ export enum ResponseTypes {
   Status = 'status',
 }
 
-export type Response = {
+export type ApiResponse = {
   message: string;
   type: ResponseTypes;
   data?: string | number | boolean | string[] | number[] | boolean[];
@@ -53,6 +53,7 @@ export type StaticOrigin =
   | string
   | RegExp
   | (boolean | string | RegExp)[];
+
 export type StaticOriginCallback = (
   err: Error | null,
   origin?: StaticOrigin | undefined,
@@ -69,7 +70,6 @@ export interface RouteHandler {
   url: Urls;
   handler: RequestHandler;
 }
-
 export type UserRole = {
   id: string;
   role_0: boolean | null;
