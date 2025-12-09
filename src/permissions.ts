@@ -228,6 +228,7 @@ export const permissions = shield(
       bridgeGetDrainsHistory: isAuthenticated,
       bridgeGetUserLiquidationAddress: isAuthenticated,
       getProfileByEmail: isAuthenticated,
+      getUserNotificationsHMAC: isAuthenticated,
 
       bridgeGetGatewayFee: allow,
       cacheTotalBalanceByColonyAddress: allow,
@@ -265,7 +266,6 @@ export const permissions = shield(
       getTransactionsByUserAndGroup: allow,
       getUserByAddress: allow,
       getUserByLiquidationAddress: allow,
-      getUserNotificationsHMAC: allow,
       getUserReputation: allow,
       getUserStakes: allow,
       getUserTokenBalance: allow,
@@ -321,6 +321,9 @@ export const permissions = shield(
     User: {
       bridgeCustomerId: isOwnUser,
       privateBetaInviteCode: isOwnUser,
+    },
+    Colony: {
+      colonyMemberInvite: deny,
     },
   },
   {
