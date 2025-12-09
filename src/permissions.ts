@@ -48,13 +48,11 @@ const resolveValue = (
     case 'FloatValue':
       return parseFloat(node.value);
     case 'StringValue':
-      return node.value;
     case 'BooleanValue':
+    case 'EnumValue':
       return node.value;
     case 'NullValue':
       return null;
-    case 'EnumValue':
-      return node.value;
     case 'ListValue':
       return node.values.map((v) => resolveValue(v, variables));
     case 'ObjectValue':
@@ -223,7 +221,62 @@ const isOwnUser = rule()((_parent, _args, ctx, info) => {
 
 export const permissions = shield(
   {
-    Query: {},
+    Query: {
+      '*': deny,
+
+      bridgeCheckKYC: isAuthenticated,
+      bridgeGetDrainsHistory: isAuthenticated,
+      bridgeGetUserLiquidationAddress: isAuthenticated,
+      getProfileByEmail: isAuthenticated,
+
+      bridgeGetGatewayFee: allow,
+      cacheTotalBalanceByColonyAddress: allow,
+      getActionsByColony: allow,
+      getColoniesByNativeTokenId: allow,
+      getColony: allow,
+      getColonyAction: allow,
+      getColonyActionByMotionId: allow,
+      getColonyByAddress: allow,
+      getColonyByName: allow,
+      getColonyByType: allow,
+      getColonyContributor: allow,
+      getColonyDecisionByColonyAddress: allow,
+      getColonyHistoricRole: allow,
+      getColonyMemberInvite: allow,
+      getColonyMotion: allow,
+      getContributorsByAddress: allow,
+      getCurrentVersionByKey: allow,
+      getDomainBalance: allow,
+      getExpenditure: allow,
+      getExtensionByColonyAndHash: allow,
+      getExtensionInstallationsCount: allow,
+      getMotionByTransactionHash: allow,
+      getMotionState: allow,
+      getMotionTimeoutPeriods: allow,
+      getPrivateBetaInviteCode: allow,
+      getProfileByUsername: allow,
+      getReputationMiningCycleMetadata: allow,
+      getRoleByDomainAndColony: allow,
+      getSafeTransactionStatus: allow,
+      getTokenByAddress: allow,
+      getTokenFromEverywhere: allow,
+      getTransaction: allow,
+      getTransactionsByUser: allow,
+      getTransactionsByUserAndGroup: allow,
+      getUserByAddress: allow,
+      getUserByLiquidationAddress: allow,
+      getUserNotificationsHMAC: allow,
+      getUserReputation: allow,
+      getUserStakes: allow,
+      getUserTokenBalance: allow,
+      getVoterRewards: allow,
+      listCurrentNetworkInverseFees: allow,
+      listCurrentVersions: allow,
+      listTokens: allow,
+      listUsers: allow,
+      searchColonyActions: allow,
+      searchColonyContributors: allow,
+    },
     Mutation: {
       '*': deny,
 
@@ -249,7 +302,6 @@ export const permissions = shield(
       createColonyTokens: hasColonyRole('input.colonyID', ColonyRole.Root),
       deleteColonyTokens: canDeleteColonyTokens,
       createColonyActionMetadata: isActionInitiator,
-
       initializeUser: isAuthenticated,
       createColonyMetadata: isAuthenticated,
       createDomainMetadata: isAuthenticated,
