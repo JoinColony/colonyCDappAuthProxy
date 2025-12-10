@@ -2,7 +2,7 @@ import { Response, Request } from 'express-serve-static-core';
 import { graphql } from 'graphql';
 
 import { getStaticOrigin, getRemoteIpAddress, logger } from '~helpers';
-import { HttpStatuses, ContentTypes, Headers } from '~types';
+import { HttpStatuses, ContentTypes, Headers, ResponseTypes } from '~types';
 import { getSchema } from '../../schema';
 
 export const handleGraphQL = async (request: Request, response: Response) => {
@@ -26,14 +26,36 @@ export const handleGraphQL = async (request: Request, response: Response) => {
     });
 
     const hasErrors = result.errors && result.errors.length > 0;
+    const hasPermissionError = result.errors?.some(
+      (error) => error.message === 'Not Authorised!',
+    );
 
     logger(
       `${userAuthenticated ? 'auth' : 'non-auth'} request${
         userAddress ? ` from ${userAddress}` : ''
       } at ${requestRemoteAddress} ${
-        hasErrors ? '\x1b[31m ERROR \x1b[0m' : '\x1b[32m OK \x1b[0m'
+        hasPermissionError
+          ? '\x1b[31m FORBIDDEN \x1b[0m'
+          : hasErrors
+            ? '\x1b[31m ERROR \x1b[0m'
+            : '\x1b[32m OK \x1b[0m'
       }`,
     );
+
+    if (hasPermissionError) {
+      return response
+        .set({
+          [Headers.AllowOrigin]: getStaticOrigin(request.headers.origin),
+          [Headers.ContentType]: ContentTypes.Json,
+          [Headers.PoweredBy]: 'Colony',
+        })
+        .status(HttpStatuses.FORBIDDEN)
+        .json({
+          message: 'forbidden',
+          type: ResponseTypes.Auth,
+          data: '',
+        });
+    }
 
     return response
       .set({
