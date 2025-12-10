@@ -1,4 +1,4 @@
-import { shield, rule, allow, deny, and } from 'graphql-shield';
+import { shield, rule, allow, deny } from 'graphql-shield';
 import { Path } from 'graphql/jsutils/Path';
 import { FieldNode, GraphQLResolveInfo, ValueNode } from 'graphql';
 import { ColonyRole, Id } from '@colony/core';
@@ -132,13 +132,6 @@ const hasColonyRole = (colonyAddressPath: string, role: ColonyRole) =>
       combinedId,
     });
     return !!data?.[`role_${role}` as keyof UserRole];
-  });
-
-const inputAllowsOnly = (allowedFields: string[]) =>
-  rule()((_parent, args) => {
-    const input = args.input as Record<string, unknown>;
-    const providedFields = Object.keys(input).filter((key) => key !== 'id');
-    return providedFields.every((field) => allowedFields.includes(field));
   });
 
 const canDeleteColonyTokens = rule()(async (_parent, args, ctx) => {
@@ -283,10 +276,7 @@ export const permissions = shield(
       validateUserInvite: allow,
       updateContributorsWithReputation: allow,
 
-      updateProfile: and(
-        matchesUserAddress('input.id'),
-        inputAllowsOnly(['hasCompletedKYCFlow', 'preferredCurrency']),
-      ),
+      updateProfile: matchesUserAddress('input.id'),
       createUniqueUser: matchesUserAddress('input.id'),
       createUserNotificationsData: matchesUserAddress('input.id'),
       updateNotificationsData: matchesUserAddress('input.userAddress'),
@@ -321,9 +311,11 @@ export const permissions = shield(
     User: {
       bridgeCustomerId: isOwnUser,
       privateBetaInviteCode: isOwnUser,
+      userPrivateBetaInviteCodeId: deny,
     },
     Colony: {
       colonyMemberInvite: deny,
+      colonyMemberInviteCode: deny,
     },
   },
   {
