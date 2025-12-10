@@ -1,4 +1,4 @@
-import { shield, rule, allow, deny } from 'graphql-shield';
+import { shield, rule, allow, deny, or } from 'graphql-shield';
 import { Path } from 'graphql/jsutils/Path';
 import { FieldNode, GraphQLResolveInfo, ValueNode } from 'graphql';
 import { ColonyRole, Id } from '@colony/core';
@@ -212,6 +212,24 @@ const isOwnUser = rule()((_parent, _args, ctx, info) => {
   return false;
 });
 
+const isUpdatingOwnProfile = rule()((_parent, _args, ctx, info) => {
+  if (!ctx.userAddress) {
+    return false;
+  }
+
+  const pathArray = getPathArray(info.path);
+  const rootField = pathArray[0];
+  const rootFieldNode = getRootFieldNode(info, rootField);
+  const rootArgs = rootFieldNode ? getRootFieldArgs(info, rootFieldNode) : {};
+
+  if (rootField === 'updateProfile') {
+    const input = rootArgs.input as { id: string };
+    return input.id.toLowerCase() === ctx.userAddress.toLowerCase();
+  }
+
+  return false;
+});
+
 export const permissions = shield(
   {
     Query: {
@@ -306,7 +324,7 @@ export const permissions = shield(
       bridgeUpdateBankAccount: isAuthenticated,
     },
     Profile: {
-      email: isOwnUser,
+      email: or(isOwnUser, isUpdatingOwnProfile),
     },
     User: {
       bridgeCustomerId: isOwnUser,
