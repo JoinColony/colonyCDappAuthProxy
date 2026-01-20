@@ -5,10 +5,13 @@
   "main": "build/index.js",
   "dependencies": {
     "@colony/core": "^2.0.1",
+    "@graphql-tools/executor-http": "^3.0.7",
+    "@graphql-tools/wrap": "^11.1.2",
     "cors": "^2.8.5",
     "express": "^4.18.2",
     "express-session": "^1.17.3",
-    "http-proxy-middleware": "^2.0.6",
+    "graphql-middleware": "^6.1.35",
+    "graphql-shield": "^7.6.5",
     "node-fetch": "2.6",
     "siwe": "^2.1.4",
     "ws": "^8.16.0"
@@ -27,7 +30,7 @@
     "ts-node": "^10.9.1",
     "tsc-alias": "^1.8.8",
     "tsconfig-paths": "^4.2.0",
-    "typescript": "^5.2.2"
+    "typescript": "^5.9.3"
   },
   "scripts": {
     "dev": "NODE_ENV=dev nodemon",

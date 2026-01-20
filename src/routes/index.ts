@@ -1,5 +1,3 @@
-import { createProxyMiddleware } from "http-proxy-middleware";
-
 import { RouteHandler, ServerMethods, Urls } from '~types';
 
 import { handleHealthRoute } from './health';
@@ -9,9 +7,7 @@ import {
   handleDeauthRoute,
   handleCheck,
 } from './auth';
-import { graphQlProxyRouteHandler, operationExecutionHandler } from './graphql';
-
-export { operationExecutionHandler };
+import { handleGraphQL } from './graphql';
 
 const routes: RouteHandler[] = [
   /*
@@ -49,9 +45,9 @@ const routes: RouteHandler[] = [
    * GraphQL
    */
   {
-    method: ServerMethods.Use,
+    method: ServerMethods.Post,
     url: Urls.GraphQL,
-    handler: createProxyMiddleware(graphQlProxyRouteHandler),
+    handler: handleGraphQL,
   },
 ];
 
