@@ -240,6 +240,7 @@ export const permissions = shield(
       bridgeGetUserLiquidationAddress: isAuthenticated,
       getProfileByEmail: isAuthenticated,
       getUserNotificationsHMAC: isAuthenticated,
+      getClientSecrets: isAuthenticated,
 
       bridgeGetGatewayFee: allow,
       cacheTotalBalanceByColonyAddress: allow,
